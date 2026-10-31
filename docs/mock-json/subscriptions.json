@@ -1,0 +1,63 @@
+{
+  "create_request": {
+    "customer_id": 3,
+    "plan_id": 1,
+    "start_date": "2026-02-01",
+    "payment_terms": "net_15",
+    "lines": [
+      {
+        "product_id": 1,
+        "variant_id": 1,
+        "quantity": 2,
+        "unit_price": 250000
+      }
+    ]
+  },
+  "subscription_detail": {
+    "id": 1,
+    "number": "SUB-2026-0001",
+    "customer_id": 3,
+    "plan_id": 1,
+    "status": "active",
+    "start_date": "2026-02-01",
+    "expiry_date": null,
+    "payment_terms": "net_15",
+    "next_billing_date": "2026-03-01",
+    "is_paused": false,
+    "lines": [
+      {
+        "id": 1,
+        "product_id": 1,
+        "variant_id": 1,
+        "quantity": 2,
+        "unit_price": 250000,
+        "amount": 500000
+      }
+    ],
+    "audits": [
+      {
+        "id": 1,
+        "action": "create",
+        "from_status": null,
+        "to_status": "draft",
+        "at": "2026-01-31T10:00:00Z",
+        "reason": "Initial quotation creation"
+      }
+    ]
+  },
+  "subscriptions_list": {
+    "items": [
+      {
+        "id": 1,
+        "number": "SUB-2026-0001",
+        "customer_id": 3,
+        "status": "active",
+        "next_billing_date": "2026-03-01",
+        "plan_name": "Monthly Standard Plan"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "plans_list": [
+    {
+      "id": 1,
+      "name": "Monthly Standard Plan",
+      "price": 250000,
+      "period": "monthly",
+      "min_qty": 1,
+      "valid_from": "2026-01-01",
+      "valid_to": null,
+      "auto_close": false,
+      "closable": true,
+      "pausable": true,
+      "renewable": true,
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "name": "Annual Premium Plan",
+      "price": 2500000,
+      "period": "yearly",
+      "min_qty": 1,
+      "valid_from": "2026-01-01",
+      "valid_to": null,
+      "auto_close": false,
+      "closable": true,
+      "pausable": true,
+      "renewable": true,
+      "is_active": true
+    }
+  ],
+  "create_plan_request": {
+    "name": "Quarterly Growth Plan",
+    "price": 700000,
+    "period": "monthly",
+    "min_qty": 1,
+    "valid_from": "2026-01-01",
+    "valid_to": "2026-12-31",
+    "auto_close": false,
+    "closable": true,
+    "pausable": true,
+    "renewable": true
+  }
+}

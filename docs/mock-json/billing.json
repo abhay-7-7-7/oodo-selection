@@ -1,0 +1,23 @@
+{
+  "billing_run_request": {
+    "as_of_date": "2026-03-01",
+    "dry_run": false
+  },
+  "billing_run_response": {
+    "as_of_date": "2026-03-01",
+    "dry_run": false,
+    "created": 12,
+    "skipped": 45,
+    "failed": 0,
+    "items": [
+      {
+        "subscription_id": 1,
+        "subscription_number": "SUB-2026-0001",
+        "invoice_number": "INV-2026-0001",
+        "period_start": "2026-03-01",
+        "period_end": "2026-03-31",
+        "total": 590000
+      }
+    ]
+  }
+}

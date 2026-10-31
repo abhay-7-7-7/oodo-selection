@@ -1,0 +1,38 @@
+{
+  "products_list": [
+    {
+      "id": 1,
+      "name": "Brightloop Enterprise ERP",
+      "type": "software",
+      "sales_price": 499900,
+      "cost_price": 150000,
+      "notes": "Core enterprise software package",
+      "variants": [
+        {
+          "id": 1,
+          "attribute": "Edition",
+          "value": "Professional",
+          "price_extra": 0
+        },
+        {
+          "id": 2,
+          "attribute": "Edition",
+          "value": "Enterprise Ultra",
+          "price_extra": 56000
+        }
+      ]
+    }
+  ],
+  "create_product_request": {
+    "name": "Brightloop Analytics Add-on",
+    "type": "addon",
+    "sales_price": 120000,
+    "cost_price": 30000,
+    "notes": "Real-time analytics module"
+  },
+  "create_variant_request": {
+    "attribute": "Tier",
+    "value": "Multi-Tenant",
+    "price_extra": 25000
+  }
+}
