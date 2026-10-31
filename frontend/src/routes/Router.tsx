@@ -160,7 +160,7 @@ const Router = [
   // ─── Customer Portal (Portal Layout) ────────────────────────────────────────
   {
     path: '/portal',
-    element: <PortalLayout />,
+    element: <FullLayout />,
     children: [
       { index: true, element: <Navigate to="/portal/dashboard" replace /> },
       { path: '/portal/dashboard', element: <PortalDashboard /> },

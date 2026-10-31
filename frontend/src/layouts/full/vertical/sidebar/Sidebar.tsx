@@ -9,12 +9,12 @@ import { Badge } from 'src/components/ui/badge';
 import { useSidebar } from 'src/components/ui/sidebar';
 import { Sheet, SheetContent } from 'src/components/ui/sheet';
 import { cn } from 'src/lib/utils';
-import { PanelLeftClose } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from 'src/components/ui/button';
 
 export const SidebarLayout: React.FC = () => {
   const { role } = useAuth();
-  const { state, openMobile, setOpenMobile, toggleSidebar, isMobile } = useSidebar();
+  const { state, openMobile, setOpenMobile, toggleSidebar } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const menuItems = getSidebarItems(role);
 
@@ -35,17 +35,15 @@ export const SidebarLayout: React.FC = () => {
             </Badge>
           )}
         </div>
-        {!isCollapsed && !isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
-            title="Collapse sidebar"
-          >
-            <PanelLeftClose className="w-4 h-4" />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </Button>
       </div>
 
       {/* Navigation Links Area */}
@@ -61,27 +59,25 @@ export const SidebarLayout: React.FC = () => {
     </div>
   );
 
-  // Mobile drawer view
-  if (isMobile) {
-    return (
+  return (
+    <>
+      {/* Persistent Left Sidebar: GUARANTEED VISIBLE on all screens and viewports */}
+      <aside
+        className={cn(
+          "h-screen sticky top-0 shrink-0 transition-all duration-200 ease-in-out z-30 flex flex-col bg-card",
+          isCollapsed ? "w-16" : "w-64"
+        )}
+      >
+        {sidebarBody}
+      </aside>
+
+      {/* Optional Mobile Overlay Drawer for very small screens */}
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
         <SheetContent side="left" className="p-0 w-72 bg-card border-r border-border [&>button]:hidden">
           {sidebarBody}
         </SheetContent>
       </Sheet>
-    );
-  }
-
-  // Desktop persistent sidebar view
-  return (
-    <aside
-      className={cn(
-        "h-screen sticky top-0 shrink-0 transition-all duration-200 ease-in-out z-20 hidden md:block",
-        isCollapsed ? "w-16" : "w-64"
-      )}
-    >
-      {sidebarBody}
-    </aside>
+    </>
   );
 };
 

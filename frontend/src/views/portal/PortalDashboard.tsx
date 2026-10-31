@@ -11,8 +11,10 @@ import {
   CheckCircle2,
   Download,
   Building,
+  Shield,
 } from 'lucide-react';
 import { Link } from 'react-router';
+import { Button } from 'src/components/ui/button';
 import { apiClient } from 'src/services/apiClient';
 import { useAuth } from 'src/context/AuthContext';
 import { Subscription, Invoice, PaymentRecord } from 'src/types';
@@ -20,7 +22,7 @@ import { formatCurrency, formatDate } from 'src/utils/calculations';
 import { toast } from 'sonner';
 
 export const PortalDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, switchRole } = useAuth();
   const customerId = user?.customer_id || 'cust-1';
 
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
