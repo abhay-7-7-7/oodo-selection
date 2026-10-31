@@ -24,19 +24,7 @@
 
 Today each customer gets their own deployment: their own database, their own branding and their own users. Brightloop is the first deployment and is pre-loaded with demo data (10,000 subscriptions). More customers can be added in the same architecture with a clean multi-tenant foundation.
 
-## Screenshots
 
-### Customer portal dashboard
-
-![Customer portal dashboard](docs/screenshots/customer-portal-dashboard.svg)
-
-### Finance dashboard
-
-![Finance dashboard](docs/screenshots/finance-dashboard.svg)
-
-### Novelty modules overview
-
-![Novelty modules overview](docs/screenshots/novelty-overview.svg)
 
 ## Run the Brightloop deployment
 
