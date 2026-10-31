@@ -16,6 +16,7 @@ from app.schemas.subscription import (
     SubscriptionCloseRequest
 )
 from app.services.subscription_service import SubscriptionService
+from app.core.dependencies import get_current_user
 from app.core.permissions import require_staff_or_admin
 
 router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
@@ -120,13 +121,19 @@ def create_subscription(
 def get_subscription_detail(
     id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(require_staff_or_admin)
+    current_user: User = Depends(get_current_user)
 ):
     sub = db.query(Subscription).filter(Subscription.id == id).first()
     if not sub:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription not found."
+        )
+    # IDOR Check: Customers can only view their own subscriptions
+    if current_user.role == "customer" and sub.customer_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you do not have permission to view this subscription."
         )
     return serialize_subscription(sub)
 

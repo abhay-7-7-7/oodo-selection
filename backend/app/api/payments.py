@@ -14,6 +14,7 @@ from app.schemas.payment import (
     PaymentRecordResult
 )
 from app.services.payment_service import PaymentService
+from app.core.dependencies import get_current_user
 from app.core.permissions import require_staff_or_admin
 
 payments_router = APIRouter(prefix="/payments", tags=["Payment Management"])
@@ -67,9 +68,12 @@ def list_payments(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
-    user: User = Depends(require_staff_or_admin)
+    current_user: User = Depends(get_current_user)
 ):
     query = db.query(Payment).join(Invoice, Payment.invoice_id == Invoice.id)
+    # Customer Isolation: Customers can only see payments for their own invoices
+    if current_user.role == "customer":
+        query = query.filter(Invoice.customer_id == current_user.id)
 
     if from_date:
         query = query.filter(Payment.paid_on >= from_date)

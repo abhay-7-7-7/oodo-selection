@@ -17,6 +17,8 @@ class User(Base):
     email = Column(String(255, collation="NOCASE"), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False, default="customer")  # admin, staff, customer
+    phone = Column(String(50), nullable=True)
+    company = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)

@@ -56,11 +56,14 @@ def seed_database(reset: bool = False, count: int = 10000):
 
         users_to_add = [
             User(name="Admin User", email="admin@brightloop.com", password_hash=admin_hash, role="admin", is_active=True),
+            User(name="Alex Vance", email="admin@brightloop.io", password_hash=admin_hash, role="admin", is_active=True),
             User(name="Anjali Staff", email="anjali@brightloop.com", password_hash=staff_hash, role="staff", is_active=True),
+            User(name="Sarah Jenkins", email="sarah@brightloop.io", password_hash=staff_hash, role="staff", is_active=True),
             User(name="Rohan Staff", email="rohan@brightloop.com", password_hash=staff_hash, role="staff", is_active=True),
             User(name="Priya Staff", email="priya@brightloop.com", password_hash=staff_hash, role="staff", is_active=True),
-            # Key demo customer
-            User(name="Rahul Menon", email="rahul@example.com", password_hash=rahul_hash, role="customer", is_active=True)
+            # Key demo customers
+            User(name="Rahul Menon", email="rahul@example.com", password_hash=rahul_hash, role="customer", is_active=True),
+            User(name="Ravi Patel", email="ravi@techcorp.in", password_hash=rahul_hash, role="customer", is_active=True)
         ]
 
         # 99 additional customers

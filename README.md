@@ -2,49 +2,102 @@
 
 A unified, financial-grade software subscription management, recurring billing, and revenue intelligence platform engineered for SaaS finance teams, sales operations, and customer self-service.
 
-> **Status:** Full-stack implementation complete. Features a high-performance **FastAPI + SQLite (WAL Mode)** backend tested with 10,000 subscriptions, paired with a modern **React 19 + TypeScript + Vite + Tailwind CSS v4** frontend implementing all 54 API inventory endpoints and 6 hackathon novelty features.
+> **Status:** Full-stack integration complete. Features a high-performance **FastAPI + SQLite (WAL Mode)** backend paired with a modern **React 19 + TypeScript + Vite + Tailwind CSS v4** frontend implementing 50+ API inventory endpoints, 6 novelties, automated customer tenant isolation, and automated CI/CD pipelines.
 
 ---
 
-## 1. Problem & Executive Overview
+## 1. System Architecture
 
-Brightloop sells software across monthly, quarterly, and annual subscription cycles. Traditionally, subscriptions live in disconnected spreadsheets where renewals are missed, invoices are manually entered, split payments are matched by hand, and recurring revenue calculations suffer from floating-point errors.
+```
+                  ┌─────────────────────────────────────────┐
+                  │       React 19 Frontend (Vite 6)        │
+                  │  28 Responsive Views + Customer Portal  │
+                  └────────────────────┬────────────────────┘
+                                       │
+                                       │ HTTP / HTTPS JSON Requests
+                                       │ (Vite Proxy: /api -> :8000)
+                                       ▼
+                  ┌─────────────────────────────────────────┐
+                  │   Centralized API Client (apiClient)    │
+                  │  JWT Bearer Auth, Error Normalization   │
+                  └────────────────────┬────────────────────┘
+                                       │
+                                       │ Authorization: Bearer <JWT>
+                                       ▼
+                  ┌─────────────────────────────────────────┐
+                  │           FastAPI REST Server           │
+                  │  Port 8000, Pydantic v2 Schema Engine   │
+                  └────────────────────┬────────────────────┘
+                                       │
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                          ▼
+   ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
+   │ Authentication  │        │ Business Logic  │        │  Role & Tenant  │
+   │ & Password Hash │        │ Pricing/Billing │        │  Data Isolation │
+   │ (bcrypt + JWT)  │        │ (Integer Paise) │        │ (Strict IDOR)   │
+   └────────┬────────┘        └────────┬────────┘        └────────┬────────┘
+            │                          │                          │
+            └──────────────────────────┼──────────────────────────┘
+                                       │
+                                       ▼
+                  ┌─────────────────────────────────────────┐
+                  │          SQLAlchemy 2.0 ORM             │
+                  │  Unit-of-Work Transactions & Constraints │
+                  └────────────────────┬────────────────────┘
+                                       │
+                                       ▼
+                  ┌─────────────────────────────────────────┐
+                  │          SQLite Database                │
+                  │  WAL Mode, 5000ms Timeout, Integer Paise│
+                  └─────────────────────────────────────────┘
+```
+
+---
+
+## 2. Problem & Executive Overview
+
+Brightloop sells software across daily, weekly, monthly, and annual subscription cycles. Traditionally, subscriptions live in disconnected spreadsheets where renewals are missed, invoices are manually entered, split payments are matched by hand, and recurring revenue calculations suffer from floating-point errors.
 
 This project delivers a unified, production-ready system replacing that workflow:
-- **Zero Floating-Point Drift:** Precise integer paise currency arithmetic (₹1 = 100 paise).
-- **Anti-Double-Billing Safeguards:** Guaranteed single invoice generation per subscription period with automated missed-period catch-up.
-- **Enterprise Self-Service:** Complete Customer Portal for invoices, payments, and plan changes.
+- **Zero Floating-Point Drift:** Precise integer paise currency arithmetic (₹1 = 100 paise) across all pricing, discounts, taxes, and invoicing.
+- **Anti-Double-Billing Safeguards:** Enforced `UNIQUE(subscription_id, period_start, period_end)` database constraint with automatic missed-period catch-up.
+- **Strict Customer Tenant Isolation:** Server-side IDOR validation ensuring customer users cannot access or mutate subscriptions, invoices, payments, or profiles belonging to other tenants.
+- **Enterprise Self-Service:** Complete Customer Portal for self-service invoice inspection, payments, and plan management.
 - **Sub-50ms Analytics at Scale:** Dynamic reporting engine evaluated on a 10,000-subscription dataset in **46.24 ms** (well within the < 2,000 ms SLA requirement).
 
 ---
 
-## 2. 📁 Repository Structure
+## 3. 📁 Repository Structure
 
 ```
 .
-├── backend/                  # FastAPI + SQLAlchemy 2.0 + SQLite application
-│   ├── app/                  # Application code (routers, models, schemas, services, core)
-│   ├── scripts/              # High-performance 10k database seeder
-│   ├── tests/                # Pytest + HTTPX automated test suite
-│   ├── API_DOCUMENTATION.md  # Complete schema, endpoints, and curl examples
-│   ├── requirements.txt      # Python dependencies
-│   └── README.md             # Detailed backend guide
-├── frontend/                 # React 19 + TypeScript + Vite + Tailwind CSS v4 application
-│   ├── src/                  # Components, layouts, views, state, and services
-│   │   ├── views/            # 28 pages across Admin, Finance, Sales, Intelligence, Portal
-│   │   ├── services/         # Full 54-endpoint API client & mock store
-│   │   ├── types/            # Strict TypeScript interfaces matching the API contract
-│   │   └── utils/            # Shared financial calculation helpers
-│   ├── package.json          # Frontend dependencies
-│   └── README.md             # Detailed frontend architecture guide
-└── docs/                     # Shared specifications and API contracts
-    ├── api-contract.md       # API endpoint inventory and schemas
-    └── mock-json/            # Reference payload fixtures
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                # CI: Pytest, Customer Isolation, Frontend Build, E2E Demo
+│       └── security.yml          # Security: Secret leak detection & dependency auditing
+├── backend/                      # FastAPI + SQLAlchemy 2.0 + SQLite application
+│   ├── app/                      # Application code (routers, models, schemas, services, core)
+│   ├── scripts/                  # High-performance 10k database seeder & E2E demo scenario
+│   ├── tests/                    # Pytest test suite (50 tests including customer isolation)
+│   ├── API_DOCUMENTATION.md      # Complete schema, endpoints, and curl examples
+│   ├── requirements.txt          # Python dependencies
+│   └── README.md                 # Detailed backend guide
+├── frontend/                     # React 19 + TypeScript + Vite + Tailwind CSS v4 application
+│   ├── src/                      # Components, layouts, views, state, and services
+│   │   ├── views/                # 28 pages across Admin, Finance, Sales, Intelligence, Portal
+│   │   ├── services/apiClient.ts # Centralized REST API client (JWT Bearer auth)
+│   │   ├── types/                # Strict TypeScript interfaces matching the API contract
+│   │   └── utils/                # Shared financial calculation helpers
+│   ├── package.json              # Frontend dependencies
+│   └── vite.config.ts            # Vite proxy configuration (/api -> http://localhost:8000)
+└── docs/                         # Shared specifications and API contracts
+    ├── api-contract.md           # API endpoint inventory and schemas
+    └── mock-json/                # Reference payload fixtures
 ```
 
 ---
 
-## 3. 🌟 Novelty Features (N1 – N6)
+## 4. 🌟 Novelty Features (N1 – N6)
 
 Brightloop incorporates six purpose-built novelty capabilities accessible directly from the management interface:
 
@@ -75,29 +128,19 @@ Brightloop incorporates six purpose-built novelty capabilities accessible direct
 
 ---
 
-## 4. 👥 Team Split
+## 5. 🔒 Security & Customer Data Isolation
 
-| Member | Role | Responsibilities |
-|---|---|---|
-| **Dev A (Backend)** | Principal Backend Engineer & Database Architect | FastAPI backend, SQLite WAL mode, schema design, JWT auth, RBAC, pricing engine, automated billing engine, payment processing, reporting API, 10k seeder, automated test suite |
-| **Dev B (Frontend)** | Senior Frontend Engineer & UI Architect | React 19 + Vite UI, shadcn/ui integration, 28 responsive pages, Customer Portal, 6 Novelty feature modules, 54-endpoint API integration, 1-click persona switcher, print-ready invoicing |
-
----
-
-## 5. 🛠️ Tech Stack
-
-| Layer | Choice | Details |
-|---|---|---|
-| **Frontend Framework** | React 19 + TypeScript | High performance, strict type safety, modular component architecture |
-| **Frontend Bundler** | Vite 6 | Instant HMR, optimized tree-shaking, fast build pipeline |
-| **Styling & Components** | Tailwind CSS v4 + shadcn/ui | Clean SaaS aesthetics, responsive design, dark/light theme support |
-| **Icons & Charts** | Lucide Icons + Recharts | Consistent iconography, financial velocity and revenue breakdown charts |
-| **Backend Runtime** | Python 3.11+ (FastAPI) | High-speed async ASGI server, Pydantic v2 validation, OpenAPI docs |
-| **Database** | SQLite (`WAL` Mode) | Foreign keys enforced, 5,000ms busy timeout, indexed queries |
-| **ORM & Data Layer** | SQLAlchemy 2.0 | Declarative relational models, unit-of-work transactions |
-| **Authentication & RBAC** | JWT (`pyjwt`) + bcrypt (`passlib`) | Multi-role access control (`admin`, `staff`, `customer`) strictly enforced |
-| **Currency Arithmetic** | Integer Paise Arithmetic | All monetary amounts stored as integer paise (₹1 = 100 paise) to eliminate float drift |
-| **Testing** | Pytest + HTTPX | Automated backend test suite validating auth, billing, permissions, and reports |
+### In-Depth IDOR & RBAC Protection
+- **Role-Based Access Control:** All routes verify JWT tokens and enforce strict role boundaries (`admin`, `staff`, `customer`). Admin-only endpoints reject staff with HTTP 403 Forbidden.
+- **Automatic Query Scoping:** Customer portal endpoints (`/api/portal/*`) automatically scope queries to the authenticated `current_user.id`.
+- **Server-Side IDOR Rejection:** Direct entity lookups (`/api/subscriptions/{id}`, `/api/invoices/{id}`, `/api/customers/{id}`) verify ownership. If a customer attempts to query or mutate an entity owned by another customer, the server immediately rejects the request with **HTTP 403 Forbidden**.
+- **Mass-Assignment Defense:** Customer profile updates strictly allow name, phone, and company; role, email, password, and permissions cannot be altered via self-service APIs.
+- **Dedicated Automated Isolation Suite:** `backend/tests/test_customer_isolation.py` proves 100% rejection across 5 tenant cross-contamination attack vectors:
+  1. Customer A cannot view Customer B's subscription details (403 Forbidden).
+  2. Customer A cannot view or print Customer B's invoice (403 Forbidden).
+  3. Customer A cannot inspect Customer B's payment transactions (0 items returned).
+  4. Customer A cannot mutate Customer B's profile (403 Forbidden).
+  5. Customer A cannot transition subscription status or record payments (403 Forbidden).
 
 ---
 
@@ -107,9 +150,9 @@ The platform includes pre-configured personas for testing and evaluation:
 
 | Role | Email | Password | Allowed Capabilities |
 |---|---|---|---|
-| **Admin** | `admin@brightloop.com` | `AdminPassword@2026` | Full platform access, staff management, settings, financial reports, all novelties |
-| **Staff** | `anjali@brightloop.com` | `StaffPassword@2026` | Quotations, catalog management, customer accounts, subscriptions, invoices, payments |
-| **Customer** | `rahul@example.com` | `Brightloop@2026` | Customer self-service portal (`/portal/*`), view owned subscriptions, invoices, and payments |
+| **Admin** | `admin@brightloop.io` / `admin@brightloop.com` | `AdminPassword@2026` | Full platform access, staff management, settings, financial reports, all novelties |
+| **Staff** | `sarah@brightloop.io` / `anjali@brightloop.com` | `StaffPassword@2026` | Quotations, catalog management, customer accounts, subscriptions, invoices, payments |
+| **Customer** | `ravi@techcorp.in` / `rahul@example.com` | `Brightloop@2026` | Customer self-service portal (`/portal/*`), view owned subscriptions, invoices, and payments |
 
 > **Tip for Evaluators:** The frontend includes a **1-Click Persona Switcher** in the top navigation header and on the login page to instantaneously switch between Admin, Staff, and Customer contexts without retyping credentials.
 
@@ -117,11 +160,9 @@ The platform includes pre-configured personas for testing and evaluation:
 
 ## 7. 🚀 Getting Started
 
-Follow these instructions to run both the backend and frontend locally.
-
 ### Prerequisites
 - **Python 3.11+** and `pip`
-- **Node.js 18+** and `pnpm` (or `npm`)
+- **Node.js 20+** and `npm`
 
 ---
 
@@ -134,15 +175,14 @@ cd backend
 # 2. Install Python dependencies
 python -m pip install -r requirements.txt
 
-# 3. (Optional) Seed the database with 10,000 realistic subscriptions
-python scripts/seed.py --reset 10000
+# 3. Seed the database with demo personas and realistic data
+python scripts/seed.py --reset 1000
 
 # 4. Start the FastAPI development server
 python -m uvicorn app.main --reload --host 0.0.0.0 --port 8000
 ```
 
 - **Interactive API Documentation (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Alternative Documentation (ReDoc):** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 - **Base API Endpoint:** `http://localhost:8000/api`
 
 ---
@@ -156,10 +196,10 @@ Open a second terminal window:
 cd frontend
 
 # 2. Install dependencies
-pnpm install
+npm install
 
 # 3. Start the Vite development server
-pnpm dev
+npm run dev
 ```
 
 - **Application URL:** [http://localhost:5173](http://localhost:5173)
@@ -169,69 +209,46 @@ pnpm dev
 
 ## 8. 🧪 Testing & Verification
 
-### Run Backend Automated Tests
-The backend test suite covers authentication, input validation, permission boundaries, billing catch-up, and report generation:
-
+### Run Complete Backend Test Suite (50 Tests)
 ```bash
 cd backend
-pytest
+python -m pytest tests -v
 ```
 
-### Run Frontend Typecheck & Build
-Verify TypeScript type conformance and build the production bundle:
+### Run Customer Isolation Verification Specifically
+```bash
+cd backend
+python -m pytest tests/test_customer_isolation.py -v
+```
 
+### Run End-to-End Acceptance Scenario
+```bash
+python backend/scripts/demo_scenario.py
+```
+
+### Run Frontend Typecheck & Production Build
 ```bash
 cd frontend
-
-# Run TypeScript check
-pnpm tsc --noEmit
-
-# Run production build
-pnpm build
+npm run build
 ```
 
 ---
 
-## 9. 📊 Requirements Traceability Matrix
+## 9. 🤖 Automated CI/CD Pipelines
 
-| Rubric / Brief Requirement | Implementation Coverage | Verification |
-|---|---|---|
-| **Dynamic Data / Local Database** | SQLite in WAL mode with indexed relational models | `scripts/seed.py`, `app/database.py` |
-| **Robust Input Validation** | Pydantic v2 schemas with server-side validation | `tests/test_auth.py`, `tests/test_subscriptions.py` |
-| **Password Rules (>8 chars, upper, lower, special)** | Enforced in `validate_password_strength` | `tests/test_auth.py` |
-| **Case-Insensitive Unique Email** | `User.email` NOCASE collation + unique index | `tests/test_auth.py` |
-| **Role-Based Access Control** | `admin`, `staff`, `customer` role checks on backend endpoints | `tests/test_permissions.py` |
-| **Customer Data Isolation** | Customer portal endpoints only return caller's own records (403 for others) | `tests/test_permissions.py` |
-| **Products & Variants (+560 Odoo brand)** | Product and Variant tables with variant price adjustments | `tests/test_products_pricing.py` |
-| **Plans with Lifecycle Flags** | `auto_close`, `closable`, `pausable`, `renewable` | `tests/test_subscriptions.py` |
-| **Automatic Billing (Anti-Double-Billing)** | `UNIQUE(subscription_id, period_start, period_end)` + catch-up logic | `tests/test_billing.py` |
-| **Integer Paise Monetary Arithmetic** | ₹1 = 100 paise; eliminates floating-point drift | `app/services/pricing_service.py` |
-| **Payment Tracking & Partial Payments** | Partial payments update balance; settles to `paid` at zero balance | `tests/test_payments.py` |
-| **Financial Summary & MRR** | Aggregated active subscriptions, revenue, outstanding, overdue, MRR | `tests/test_reports.py` |
-| **Sub-2s Query Performance** | Queries execute in **46.24 ms** across 10,000 subscriptions | `app/services/report_service.py` |
-| **Customer Portal** | Dedicated portal interface for self-service billing and subscriptions | `/portal/*` views |
-| **Novelty Capabilities** | 6 Novelty modules (Guardrail, Auditor, Bank Matcher, Explainer, Radar, Outbox) | `/views/intelligence`, `/views/pricing`, etc. |
+The repository features comprehensive GitHub Actions workflows under `.github/workflows/`:
+
+1. **`ci.yml` (Continuous Integration Pipeline):**
+   - **Backend Job:** Tests on Python 3.11 with pytest, validating 50 unit and integration tests including tenant isolation.
+   - **Frontend Job:** Builds React bundle on Node 20 with `npm run build` (`tsc && vite build`).
+   - **E2E Integration Job:** Executes `backend/scripts/demo_scenario.py` verifying the full business workflow (signup -> quotation -> confirm -> subscription -> billing run -> invoice -> partial payment -> full settlement).
+
+2. **`security.yml` (Security & Vulnerability Audit):**
+   - **Gitleaks Scanner:** Detects accidentally committed secrets or tokens.
+   - **Dependency Vulnerability Scan:** Runs `pip-audit` on Python packages and `npm audit` on frontend packages.
 
 ---
 
-## 10. 📝 Progress & Checkpoint Log
-
-| Checkpoint | Time | Deliverable |
-|---|---|---|
-| 1 | 10:00 | Repository initialization, problem breakdown, architectural specifications and features planned |
-| 2 | 11:00 | SQLite schema with WAL mode, relational models for Users, Outbox, Products, Variants, Plans, Taxes, Discounts, Templates, Subscriptions, Invoices, Payments |
-| 3 | 11:15 | Authentication, JWT, bcrypt, password strength validation, Outbox email simulation |
-| 4 | 11:25 | Catalog APIs (Products, Variants, Plans, Taxes, Discounts), Quotation templates, Subscriptions state machine |
-| 5 | 11:35 | Reusable pricing engine (integer paise, variant adjustments, taxes), Automatic billing engine with anti-double-billing guards |
-| 6 | 11:45 | Invoice management, Payments (partial and full settlement), Financial reporting (MRR, revenue, outstanding, overdue < 50ms) |
-| 7 | 11:50 | High-performance 10k seeder (3.78s execution), 28 automated tests written and verified passing |
-| 8 | 11:55 | End-to-end acceptance test scenario executed with 100% success; complete `API_DOCUMENTATION.md` delivered |
-| 9 | 12:45 | Complete frontend implemented with 28 views, customer portal, 6 novelty feature modules, and mock store |
-| 10 | 13:15 | Codebase pruned, 142 unused starter files removed, dependencies cleaned, production build verified in 732ms |
-| 11 | 13:30 | Integrated full-stack repository: unified README, consolidated .gitignore, verified test suites and builds |
-
----
-
-## 11. 📄 License & Attribution
+## 10. 📄 License & Attribution
 
 This project is licensed under the MIT License. See [frontend/LICENSE](./frontend/LICENSE) for third-party open-source attribution details.
