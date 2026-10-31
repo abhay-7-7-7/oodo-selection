@@ -25,6 +25,7 @@ import {
   LucideIcon,
   DollarSign,
   TrendingUp,
+  Bell,
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -260,6 +261,17 @@ export const getSidebarItems = (role: 'admin' | 'staff' | 'customer'): MenuItem[
       name: 'Finance Reports',
       icon: BarChart3,
       to: '/reports',
+    },
+
+    // 9b. COMMUNICATION
+    {
+      heading: 'COMMUNICATION',
+    },
+    {
+      id: 'nav-notifications',
+      name: 'Notifications',
+      icon: Bell,
+      to: '/notifications',
     },
 
     // 10. ADMINISTRATION

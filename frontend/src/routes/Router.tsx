@@ -31,6 +31,7 @@ const FinanceDashboard = Loadable(lazy(() => import('../views/dashboard/FinanceD
    SALES (FullLayout)
 ═══════════════════════════════════════ */
 const CustomerList = Loadable(lazy(() => import('../views/customers/CustomerList')));
+const CustomerDetail = Loadable(lazy(() => import('../views/customers/CustomerDetail')));
 const Quotations = Loadable(lazy(() => import('../views/sales/Quotations')));
 const QuotationTemplates = Loadable(lazy(() => import('../views/sales/QuotationTemplates')));
 
@@ -79,6 +80,11 @@ const BillExplainer = Loadable(lazy(() => import('../views/intelligence/BillExpl
 const FinanceReports = Loadable(lazy(() => import('../views/reports/FinanceReports')));
 
 /* ═══════════════════════════════════════
+   NOTIFICATIONS (FullLayout)
+═══════════════════════════════════════ */
+const NotificationsPage = Loadable(lazy(() => import('../views/notifications/Notifications')));
+
+/* ═══════════════════════════════════════
    ADMINISTRATION (FullLayout)
 ═══════════════════════════════════════ */
 const StaffManagement = Loadable(lazy(() => import('../views/admin/StaffManagement')));
@@ -112,17 +118,23 @@ const Router = [
 
       // ── Sales ─────────────────────────────────────────────────────────────────
       { path: '/customers', element: <CustomerList /> },
+      { path: '/customers/:id', element: <CustomerDetail /> },
       { path: '/quotations', element: <Quotations /> },
       { path: '/quotation-templates', element: <QuotationTemplates /> },
 
       // ── Catalog ───────────────────────────────────────────────────────────────
       { path: '/products', element: <Products /> },
+      { path: '/catalog/products', element: <Products /> },
       { path: '/product-variants', element: <ProductVariants /> },
+      { path: '/catalog/variants', element: <ProductVariants /> },
       { path: '/subscription-plans', element: <SubscriptionPlans /> },
+      { path: '/catalog/plans', element: <SubscriptionPlans /> },
 
       // ── Pricing ───────────────────────────────────────────────────────────────
       { path: '/taxes', element: <Taxes /> },
+      { path: '/catalog/taxes', element: <Taxes /> },
       { path: '/discounts', element: <Discounts /> },
+      { path: '/catalog/discounts', element: <Discounts /> },
       { path: '/discount-guardrail', element: <DiscountGuardrail /> },
 
       // ── Subscriptions ─────────────────────────────────────────────────────────
@@ -145,8 +157,12 @@ const Router = [
       // ── Reports ───────────────────────────────────────────────────────────────
       { path: '/reports', element: <FinanceReports /> },
 
+      // ── Notifications ─────────────────────────────────────────────────────────
+      { path: '/notifications', element: <NotificationsPage /> },
+
       // ── Administration ────────────────────────────────────────────────────────
       { path: '/staff', element: <StaffManagement /> },
+      { path: '/admin/staff', element: <StaffManagement /> },
       { path: '/outbox', element: <Outbox /> },
       { path: '/settings', element: <Settings /> },
 
@@ -177,9 +193,13 @@ const Router = [
     children: [
       // Brightloop Auth routes
       { path: '/auth/login', element: <Login /> },
+      { path: '/login', element: <Login /> },
       { path: '/auth/signup', element: <SignUp /> },
+      { path: '/signup', element: <SignUp /> },
       { path: '/auth/forgot-password', element: <ForgotPassword /> },
+      { path: '/forgot-password', element: <ForgotPassword /> },
       { path: '/auth/reset-password', element: <ResetPassword /> },
+      { path: '/reset-password', element: <ResetPassword /> },
       { path: '/auth/403', element: <AccessDenied /> },
       { path: '/auth/404', element: <NotFound /> },
 

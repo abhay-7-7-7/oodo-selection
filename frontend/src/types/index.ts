@@ -420,6 +420,23 @@ export interface RenewalRadarItem {
   urgency: 'critical' | 'high' | 'medium' | 'expired';
 }
 
+// Notification type (from backend /api/notifications)
+export type NotificationCategory = 'invoice' | 'payment' | 'subscription' | 'quotation' | 'account' | 'system';
+export type NotificationPriority = 'low' | 'normal' | 'high' | 'critical';
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  category: NotificationCategory;
+  priority: NotificationPriority;
+  is_read: boolean;
+  created_at: string;
+  read_at?: string;
+  action_url?: string;
+}
+
 // NOVELTY N6: Reminders Settings
 export interface ReminderSettings {
   due_soon_days: number;

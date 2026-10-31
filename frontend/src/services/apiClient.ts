@@ -27,6 +27,7 @@ import {
   SubscriptionPlan,
   Tax,
   User,
+  AppNotification,
 } from 'src/types';
 import { simulateDiscountGuardrail } from 'src/utils/calculations';
 
@@ -1193,5 +1194,46 @@ export const apiClient = {
 
   async updateReminderSettings(settings: Partial<ReminderSettings>): Promise<ReminderSettings> {
     return { ...(await this.getReminderSettings()), ...settings };
+  },
+
+  // ==========================================
+  // NOTIFICATIONS (Backend /api/notifications)
+  // ==========================================
+
+  async getNotifications(params?: { unread?: boolean; category?: string }): Promise<AppNotification[]> {
+    const qParts: string[] = ['page_size=50'];
+    if (params?.unread === true) qParts.push('is_read=false');
+    if (params?.category) qParts.push(`category=${params.category}`);
+    const res = await request<any>(`/notifications?${qParts.join('&')}`);
+    const items = res.items || [];
+    return items.map((n: any): AppNotification => ({
+      id: String(n.id),
+      user_id: String(n.user_id),
+      title: n.title || '',
+      message: n.message || n.body || '',
+      category: n.category || 'system',
+      priority: n.priority || 'normal',
+      is_read: Boolean(n.is_read),
+      created_at: String(n.created_at),
+      read_at: n.read_at ? String(n.read_at) : undefined,
+      action_url: n.action_url,
+    }));
+  },
+
+  async getNotificationUnreadCount(): Promise<number> {
+    const res = await request<any>('/notifications/unread-count');
+    return Number(res.unread_count || 0);
+  },
+
+  async markNotificationRead(id: string): Promise<void> {
+    await request<any>(`/notifications/${id}/read`, { method: 'PATCH' });
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    await request<any>('/notifications/read-all', { method: 'PATCH' });
+  },
+
+  async deleteNotification(id: string): Promise<void> {
+    await request<any>(`/notifications/${id}`, { method: 'DELETE' });
   },
 };
