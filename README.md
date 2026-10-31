@@ -12,10 +12,8 @@ Brightloop sells software on monthly and yearly subscriptions. Today subscriptio
 
 | Member | Role | GitHub |
 |---|---|---|
-| TBD | Backend core (auth, RBAC, catalog) | @ |
-| TBD | Billing (subscriptions, invoices, discounts, payments) | @ |
-| TBD | Frontend (admin/staff UI) | @ |
-| TBD | Dashboard, customer portal, seed data | @ |
+| TBD | Backend core (auth, RBAC, catalog),Dashboard, customer portal, seed data | @ |
+| TBD | Billing (subscriptions, invoices, discounts, payments),Frontend (admin/staff UI | @ |
 
 ## Planned Features
 
