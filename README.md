@@ -12,6 +12,8 @@
 | Payments are matched by scrolling bank statements | Payments are recorded against invoices; the bank matcher matches an uploaded bank CSV to open invoices |
 | Nobody knows recurring revenue | Finance dashboard with active subscriptions, revenue, outstanding and overdue, fast at 10,000 subscriptions |
 
+![Finance Command Dashboard](docs/screenshots/finance-command-dashboard.png)
+
 ## Why a company would choose RecurOps
 
 - **Money you can trust.** A database guard makes double billing impossible, and an integrity auditor proves it on demand.
@@ -64,7 +66,11 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 | Reporting | Finance dashboard with filters, under 2 seconds at 10,000 subscriptions |
 | Customer portal | Self-service view of their own subscriptions, invoices and payments |
 
+![Customer Billing Portal](docs/screenshots/customer-portal.png)
+
 **Our six differentiators**
+
+![Novelties Hub](docs/screenshots/novelties-hub.png)
 
 | Novelty | Pain it removes | Where to find it |
 |---|---|---|
