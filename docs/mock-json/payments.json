@@ -1,0 +1,32 @@
+{
+  "record_payment_request": {
+    "method": "bank_transfer",
+    "amount": 590000,
+    "paid_on": "2026-03-05",
+    "note": "Wire ref: TRX-99887711"
+  },
+  "record_payment_response": {
+    "payment_id": 1,
+    "invoice_id": 1,
+    "amount": 590000,
+    "new_balance": 0,
+    "invoice_status": "paid",
+    "paid_on": "2026-03-05"
+  },
+  "payments_list": {
+    "items": [
+      {
+        "id": 1,
+        "invoice_id": 1,
+        "invoice_number": "INV-2026-0001",
+        "amount": 590000,
+        "method": "bank_transfer",
+        "paid_on": "2026-03-05",
+        "note": "Wire ref: TRX-99887711"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  }
+}

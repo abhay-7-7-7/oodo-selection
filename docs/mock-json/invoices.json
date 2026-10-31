@@ -1,0 +1,54 @@
+{
+  "invoices_list": {
+    "items": [
+      {
+        "id": 1,
+        "number": "INV-2026-0001",
+        "subscription_id": 1,
+        "customer_id": 3,
+        "customer_name": "Acme Corp",
+        "issue_date": "2026-03-01",
+        "due_date": "2026-03-15",
+        "status": "confirmed",
+        "subtotal": 500000,
+        "discount_total": 0,
+        "tax_total": 90000,
+        "total": 590000,
+        "paid_total": 0
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "invoice_detail": {
+    "id": 1,
+    "number": "INV-2026-0001",
+    "subscription_id": 1,
+    "customer_id": 3,
+    "period_start": "2026-03-01",
+    "period_end": "2026-03-31",
+    "issue_date": "2026-03-01",
+    "due_date": "2026-03-15",
+    "status": "confirmed",
+    "subtotal": 500000,
+    "discount_total": 0,
+    "tax_total": 90000,
+    "total": 590000,
+    "paid_total": 0,
+    "lines": [
+      {
+        "id": 1,
+        "description": "Brightloop Enterprise ERP (Professional Edition)",
+        "quantity": 2,
+        "unit_price": 250000,
+        "base": 500000,
+        "variant_extra": 0,
+        "discount": 0,
+        "tax": 90000,
+        "amount": 590000
+      }
+    ],
+    "payments": []
+  }
+}

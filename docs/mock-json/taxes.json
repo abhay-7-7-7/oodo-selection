@@ -1,0 +1,23 @@
+{
+  "taxes_list": [
+    {
+      "id": 1,
+      "name": "GST 18%",
+      "rate_percent": 18.0,
+      "applies_to": "all",
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "name": "GST 5%",
+      "rate_percent": 5.0,
+      "applies_to": "software",
+      "is_active": true
+    }
+  ],
+  "create_tax_request": {
+    "name": "VAT Standard 20%",
+    "rate_percent": 20.0,
+    "applies_to": "all"
+  }
+}

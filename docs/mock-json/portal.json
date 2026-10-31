@@ -1,0 +1,38 @@
+{
+  "portal_subscriptions": [
+    {
+      "id": 1,
+      "number": "SUB-2026-0001",
+      "plan_name": "Monthly Standard Plan",
+      "status": "active",
+      "start_date": "2026-02-01",
+      "next_billing_date": "2026-03-01"
+    }
+  ],
+  "portal_invoices": [
+    {
+      "id": 1,
+      "number": "INV-2026-0001",
+      "issue_date": "2026-03-01",
+      "due_date": "2026-03-15",
+      "total": 590000,
+      "paid_total": 590000,
+      "status": "paid"
+    }
+  ],
+  "customers_list": {
+    "items": [
+      {
+        "id": 3,
+        "name": "Acme Corp",
+        "email": "billing@acme.com",
+        "role": "customer",
+        "is_active": true,
+        "created_at": "2026-01-15T09:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  }
+}

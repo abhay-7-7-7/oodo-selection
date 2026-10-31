@@ -1,0 +1,31 @@
+{
+  "discounts_list": [
+    {
+      "id": 1,
+      "name": "LAUNCH_SPECIAL_2026",
+      "kind": "percent",
+      "value": 10.0,
+      "min_amount": 100000,
+      "min_qty": 1,
+      "start_date": "2026-01-01",
+      "end_date": "2026-12-31",
+      "usage_limit": 50,
+      "times_used": 14,
+      "scope": "subscription",
+      "product_id": null,
+      "is_active": true
+    }
+  ],
+  "create_discount_request": {
+    "name": "STARTUP_FLAT_500",
+    "kind": "fixed",
+    "value": 50000,
+    "min_amount": 200000,
+    "min_qty": 1,
+    "start_date": "2026-01-01",
+    "end_date": "2026-06-30",
+    "usage_limit": 100,
+    "scope": "subscription",
+    "product_id": null
+  }
+}

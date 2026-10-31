@@ -1,0 +1,32 @@
+{
+  "templates_list": [
+    {
+      "id": 1,
+      "name": "Standard Cloud Starter Template",
+      "plan_id": 1,
+      "validity_days": 30,
+      "lines": [
+        {
+          "id": 1,
+          "product_id": 1,
+          "variant_id": 1,
+          "quantity": 1,
+          "unit_price": 250000
+        }
+      ]
+    }
+  ],
+  "create_template_request": {
+    "name": "Enterprise High Volume",
+    "plan_id": 2,
+    "validity_days": 45,
+    "lines": [
+      {
+        "product_id": 1,
+        "variant_id": 2,
+        "quantity": 5,
+        "unit_price": 555900
+      }
+    ]
+  }
+}
