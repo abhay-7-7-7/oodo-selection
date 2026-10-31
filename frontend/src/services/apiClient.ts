@@ -1265,3 +1265,6 @@ export const apiClient = {
     await request<any>(`/notifications/${id}`, { method: 'DELETE' });
   },
 };
+
+
+export { noveltyApi } from './noveltyApiClient';

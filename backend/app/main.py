@@ -22,6 +22,16 @@ from app.api.reports import router as reports_router
 from app.api.portal import portal_router, customers_router
 from app.api.notifications import router as notifications_router
 
+# Novelty Routers
+from app.api.novelties import (
+    discount_guardrail_router,
+    integrity_auditor_router,
+    bank_matcher_router,
+    bill_explainer_router,
+    renewal_radar_router,
+    reminder_centre_router,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,6 +84,7 @@ def health_check():
 
 api_prefix = settings.API_V1_STR
 
+# Core API routes
 app.include_router(auth_router, prefix=api_prefix)
 app.include_router(staff_router, prefix=api_prefix)
 app.include_router(outbox_router, prefix=api_prefix)
@@ -91,3 +102,22 @@ app.include_router(reports_router, prefix=api_prefix)
 app.include_router(portal_router, prefix=api_prefix)
 app.include_router(customers_router, prefix=api_prefix)
 app.include_router(notifications_router, prefix=api_prefix)
+
+# Novelty API routes (N1 - N6) under /api/novelties
+novelties_prefix = "/api/novelties"
+app.include_router(discount_guardrail_router, prefix=f"{novelties_prefix}/discount-guardrail", tags=["N1 Discount Guardrail"])
+app.include_router(integrity_auditor_router, prefix=f"{novelties_prefix}/integrity-auditor", tags=["N2 Integrity Auditor"])
+app.include_router(bank_matcher_router, prefix=f"{novelties_prefix}/bank-matcher", tags=["N3 Bank Matcher"])
+app.include_router(bill_explainer_router, prefix=f"{novelties_prefix}/bill-explainer", tags=["N4 Bill Explainer"])
+app.include_router(renewal_radar_router, prefix=f"{novelties_prefix}/renewal-radar", tags=["N5 Renewal Radar"])
+app.include_router(reminder_centre_router, prefix=f"{novelties_prefix}/reminder-centre", tags=["N6 Reminder Centre"])
+
+# Direct novelty route aliases
+app.include_router(discount_guardrail_router, prefix=f"{api_prefix}/guardrails", tags=["N1 Discount Guardrail (Alias)"])
+app.include_router(discount_guardrail_router, prefix=f"{api_prefix}/discount-guardrail", tags=["N1 Discount Guardrail (Direct)"])
+app.include_router(integrity_auditor_router, prefix=f"{api_prefix}/auditor", tags=["N2 Integrity Auditor (Alias)"])
+app.include_router(integrity_auditor_router, prefix=f"{api_prefix}/integrity-auditor", tags=["N2 Integrity Auditor (Direct)"])
+app.include_router(bank_matcher_router, prefix=f"{api_prefix}/bank-matcher", tags=["N3 Bank Matcher (Direct)"])
+app.include_router(bill_explainer_router, prefix=f"{api_prefix}/bill-explainer", tags=["N4 Bill Explainer (Direct)"])
+app.include_router(renewal_radar_router, prefix=f"{api_prefix}/renewal-radar", tags=["N5 Renewal Radar (Direct)"])
+app.include_router(reminder_centre_router, prefix=f"{api_prefix}/reminder-centre", tags=["N6 Reminder Centre (Direct)"])

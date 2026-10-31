@@ -478,3 +478,7 @@ export interface OverdueReportItem {
   outstanding_balance: number;
   follow_up_status: 'pending' | 'reminder_sent' | 'escalated';
 }
+
+
+// Export all novelty types
+export * from './novelties';

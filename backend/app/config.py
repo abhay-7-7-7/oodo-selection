@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./brightloop.db"
     
+    # Novelty Configuration
+    MIN_MARGIN_PERCENT: float = 15.0
+    
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
     

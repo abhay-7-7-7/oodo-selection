@@ -13,6 +13,13 @@ from app.models.payment import Payment
 from app.models.settings import Setting
 from app.models.notification import Notification, NotificationPreference
 
+# Novelty models
+from app.models.guardrail import GuardrailAuditLog
+from app.models.auditor import AuditRun, AuditFinding
+from app.models.bank_matcher import BankTransaction, ReconciliationRecord
+from app.models.renewal_radar import RenewalQuotation
+from app.models.reminder_centre import ReminderSettings, ReminderRecord
+
 __all__ = [
     "Base",
     "User",
@@ -34,4 +41,12 @@ __all__ = [
     "Setting",
     "Notification",
     "NotificationPreference",
+    "GuardrailAuditLog",
+    "AuditRun",
+    "AuditFinding",
+    "BankTransaction",
+    "ReconciliationRecord",
+    "RenewalQuotation",
+    "ReminderSettings",
+    "ReminderRecord",
 ]

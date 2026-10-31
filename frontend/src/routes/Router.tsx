@@ -1,5 +1,5 @@
 // Brightloop Application Router — Complete Route Configuration
-// Covers all core business modules, role-based navigation, customer portal, and auth flows
+// Covers all core business modules, role-based navigation, customer portal, auth flows, and integrated novelties (N1 - N6)
 
 import { lazy } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router';
@@ -10,7 +10,6 @@ import Loadable from '../layouts/full/shared/loadable/Loadable';
 ═══════════════════════════════════════ */
 const FullLayout = Loadable(lazy(() => import('../layouts/full/FullLayout')));
 const BlankLayout = Loadable(lazy(() => import('../layouts/blank/BlankLayout')));
-const PortalLayout = Loadable(lazy(() => import('../layouts/portal/PortalLayout')));
 
 /* ═══════════════════════════════════════
    AUTHENTICATION (BlankLayout)
@@ -72,13 +71,15 @@ const ProfilePage = Loadable(lazy(() => import('../views/profile/Profile')));
 const Outbox = Loadable(lazy(() => import('../views/admin/Outbox')));
 
 /* ═══════════════════════════════════════
-   NOVELTY WORKSPACES (Preserved)
+   INTEGRATED NOVELTIES (N1 - N6)
 ═══════════════════════════════════════ */
-const DiscountGuardrail = Loadable(lazy(() => import('../views/pricing/DiscountGuardrail')));
-const RenewalRadar = Loadable(lazy(() => import('../views/subscriptions/RenewalRadar')));
-const BankMatcher = Loadable(lazy(() => import('../views/payments/BankMatcher')));
-const IntegrityAuditor = Loadable(lazy(() => import('../views/intelligence/IntegrityAuditor')));
-const BillExplainer = Loadable(lazy(() => import('../views/intelligence/BillExplainer')));
+const NoveltiesOverview = Loadable(lazy(() => import('../views/novelties/Overview')));
+const DiscountGuardrail = Loadable(lazy(() => import('../views/novelties/DiscountGuardrail')));
+const RenewalRadar = Loadable(lazy(() => import('../views/novelties/RenewalRadar')));
+const BankMatcher = Loadable(lazy(() => import('../views/novelties/BankMatcher')));
+const IntegrityAuditor = Loadable(lazy(() => import('../views/novelties/IntegrityAuditor')));
+const BillExplainer = Loadable(lazy(() => import('../views/novelties/BillExplainer')));
+const ReminderCentre = Loadable(lazy(() => import('../views/novelties/ReminderCentre')));
 
 /* ═══════════════════════════════════════
    CUSTOMER PORTAL (PortalLayout)
@@ -94,14 +95,12 @@ const PortalProfile = Loadable(lazy(() => import('../views/portal/PortalProfile'
    ROUTE DEFINITIONS
 ═══════════════════════════════════════ */
 const Router = [
-  // ─── Internal Application (Full Shell Layout) ───────────────────────────────
+  // ─── Main Management Application (Full Layout) ──────────────────────────────
   {
     path: '/',
     element: <FullLayout />,
     children: [
-      // Root redirect
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: '/', element: <Navigate to="/dashboard" replace /> },
 
       // ── Overview ──────────────────────────────────────────────────────────────
       { path: '/dashboard', element: <FinanceDashboard /> },
@@ -144,13 +143,15 @@ const Router = [
       { path: '/settings', element: <Settings /> },
       { path: '/profile', element: <ProfilePage /> },
 
-      // ── Preserved Aux Modules ─────────────────────────────────────────────────
-      { path: '/outbox', element: <Outbox /> },
+      // ── Integrated Novelty Intelligence Modules (N1 - N6) ─────────────────────
+      { path: '/novelties', element: <NoveltiesOverview /> },
       { path: '/discount-guardrail', element: <DiscountGuardrail /> },
       { path: '/renewal-radar', element: <RenewalRadar /> },
       { path: '/bank-matcher', element: <BankMatcher /> },
       { path: '/integrity-auditor', element: <IntegrityAuditor /> },
       { path: '/bill-explainer', element: <BillExplainer /> },
+      { path: '/reminder-centre', element: <ReminderCentre /> },
+      { path: '/outbox', element: <Outbox /> },
 
       // ── Catch-all inside internal layout ──────────────────────────────────────
       { path: '*', element: <Navigate to="/auth/404" replace /> },
@@ -169,6 +170,7 @@ const Router = [
       { path: '/portal/payments', element: <PortalPayments /> },
       { path: '/portal/notifications', element: <PortalNotificationsPage /> },
       { path: '/portal/profile', element: <PortalProfile /> },
+      { path: '/portal/bill-explainer', element: <BillExplainer /> },
       { path: '*', element: <Navigate to="/portal/dashboard" replace /> },
     ],
   },
