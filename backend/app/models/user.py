@@ -25,6 +25,8 @@ class User(Base):
     reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
     subscriptions = relationship("Subscription", back_populates="customer")
     invoices = relationship("Invoice", back_populates="customer")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    notification_preferences = relationship("NotificationPreference", back_populates="user", cascade="all, delete-orphan")
 
 
 class PasswordResetToken(Base):

@@ -11,6 +11,7 @@ from app.models.audit import SubscriptionAudit
 from app.models.invoice import Invoice, InvoiceLine
 from app.models.payment import Payment
 from app.models.settings import Setting
+from app.models.notification import Notification, NotificationPreference
 
 __all__ = [
     "Base",
@@ -31,4 +32,6 @@ __all__ = [
     "InvoiceLine",
     "Payment",
     "Setting",
+    "Notification",
+    "NotificationPreference",
 ]

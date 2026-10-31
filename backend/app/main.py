@@ -1,14 +1,26 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.config import settings
 from app.database import Base, engine
-# Register all models for database table initialization
+# Register models for metadata creation
 import app.models
 
-from app.api.auth import router as auth_router
+from app.api.auth import auth_router, staff_router, outbox_router
+from app.api.products import router as products_router
+from app.api.plans import router as plans_router
+from app.api.taxes import router as taxes_router
+from app.api.discounts import router as discounts_router
+from app.api.quotations import router as quotations_router
+from app.api.subscriptions import router as subscriptions_router
+from app.api.billing import router as billing_router
+from app.api.invoices import router as invoices_router
+from app.api.payments import payments_router, invoice_payments_router
+from app.api.reports import router as reports_router
+from app.api.portal import portal_router, customers_router
+from app.api.notifications import router as notifications_router
 
 
 @asynccontextmanager
@@ -20,7 +32,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Subscription management and recurring billing backend for Brightloop Software.",
+    description="Complete subscription management and recurring billing backend for Brightloop Software.",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -43,11 +55,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         field = " -> ".join(str(loc) for loc in error.get("loc", []))
         msg = error.get("msg", "Invalid value")
         error_messages.append(f"{field}: {msg}")
-
+    
     first_msg = error_messages[0] if error_messages else "Request validation failed."
+    # Strip Pydantic's internal "Value error, " prefix so the client gets a clean human message
     if "Value error, " in first_msg:
         first_msg = first_msg.split("Value error, ")[-1]
-
+        
     return JSONResponse(
         status_code=422,
         content={"detail": first_msg}
@@ -60,4 +73,21 @@ def health_check():
 
 
 api_prefix = settings.API_V1_STR
+
 app.include_router(auth_router, prefix=api_prefix)
+app.include_router(staff_router, prefix=api_prefix)
+app.include_router(outbox_router, prefix=api_prefix)
+app.include_router(products_router, prefix=api_prefix)
+app.include_router(plans_router, prefix=api_prefix)
+app.include_router(taxes_router, prefix=api_prefix)
+app.include_router(discounts_router, prefix=api_prefix)
+app.include_router(quotations_router, prefix=api_prefix)
+app.include_router(subscriptions_router, prefix=api_prefix)
+app.include_router(billing_router, prefix=api_prefix)
+app.include_router(invoices_router, prefix=api_prefix)
+app.include_router(invoice_payments_router, prefix=api_prefix)
+app.include_router(payments_router, prefix=api_prefix)
+app.include_router(reports_router, prefix=api_prefix)
+app.include_router(portal_router, prefix=api_prefix)
+app.include_router(customers_router, prefix=api_prefix)
+app.include_router(notifications_router, prefix=api_prefix)
