@@ -3,7 +3,9 @@
 A unified platform for running plans, subscriptions and recurring billing for **Brightloop Software**: from product setup and quotations to automatic invoicing, payments and revenue reporting.
 
 > Status: Hackathon build in progress. This README is updated every hour with the latest checkpoint.
+## Problem
 
+Brightloop sells software on monthly and yearly subscriptions. Today subscriptions live in spreadsheets, renewals are missed, invoices are typed by hand, payments are matched manually, and nobody knows the real recurring revenue. This project replaces that with one system.
 
 ## Team
 
