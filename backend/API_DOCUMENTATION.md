@@ -1032,3 +1032,202 @@ This document serves as the comprehensive contract between the **Brightloop Soft
   curl -X GET "http://localhost:8000/api/customers?page=1&page_size=20" \
     -H "Authorization: Bearer <STAFF_TOKEN>"
   ```
+
+---
+
+### Category H: Role-Based In-App Notification System
+
+All notifications are stored persistently in the database with strict user isolation, category preference gating, and deduplication guarantees via unique event keys.
+
+#### 43. List Notifications
+- **Endpoint:** `GET /api/notifications`
+- **Access:** Authenticated (Admin, Staff, Customer)
+- **Query Parameters:**
+  - `category` (optional): `invoice`, `payment`, `subscription`, `quotation`, `account`, `system`
+  - `is_read` (optional): `true` / `false`
+  - `priority` (optional): `low`, `normal`, `high`, `critical`
+  - `page` (optional, default: `1`): page number
+  - `page_size` (optional, default: `20`, max: `100`): items per page
+- **Customer Isolation:** Returns ONLY notifications addressed to the authenticated user's `id`.
+- **Success (200):**
+  ```json
+  {
+    "items": [
+      {
+        "id": 101,
+        "user_id": 12,
+        "title": "Invoice Due Soon",
+        "message": "Invoice INV-00045 for ₹560.00 is due in 3 days on 2026-11-03.",
+        "category": "invoice",
+        "priority": "normal",
+        "related_entity_type": "invoice",
+        "related_entity_id": 45,
+        "action_url": "/portal/invoices",
+        "event_key": "invoice:45:due_soon:3d",
+        "is_read": false,
+        "created_at": "2026-10-31T06:00:00Z",
+        "read_at": null
+      }
+    ],
+    "page": 1,
+    "page_size": 20,
+    "total": 1,
+    "unread_count": 1
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X GET "http://localhost:8000/api/notifications?is_read=false&page=1" \
+    -H "Authorization: Bearer <JWT_TOKEN>"
+  ```
+
+#### 44. Unread Notification Count
+- **Endpoint:** `GET /api/notifications/unread-count`
+- **Access:** Authenticated (Admin, Staff, Customer)
+- **Success (200):**
+  ```json
+  {
+    "unread_count": 3
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X GET http://localhost:8000/api/notifications/unread-count \
+    -H "Authorization: Bearer <JWT_TOKEN>"
+  ```
+
+#### 45. Mark Notification as Read
+- **Endpoint:** `PATCH /api/notifications/{notification_id}/read`
+- **Access:** Authenticated (Owner of notification only)
+- **Security Check:** If notification belongs to another user, returns `403 Forbidden`. If non-existent, returns `404 Not Found`.
+- **Success (200):**
+  ```json
+  {
+    "id": 101,
+    "user_id": 12,
+    "title": "Invoice Due Soon",
+    "message": "Invoice INV-00045 for ₹560.00 is due in 3 days on 2026-11-03.",
+    "category": "invoice",
+    "priority": "normal",
+    "related_entity_type": "invoice",
+    "related_entity_id": 45,
+    "action_url": "/portal/invoices",
+    "event_key": "invoice:45:due_soon:3d",
+    "is_read": true,
+    "created_at": "2026-10-31T06:00:00Z",
+    "read_at": "2026-10-31T06:45:00Z"
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X PATCH http://localhost:8000/api/notifications/101/read \
+    -H "Authorization: Bearer <JWT_TOKEN>"
+  ```
+
+#### 46. Mark All Notifications as Read
+- **Endpoint:** `PATCH /api/notifications/read-all`
+- **Access:** Authenticated
+- **Success (200):**
+  ```json
+  {
+    "message": "3 notifications marked as read.",
+    "updated_count": 3
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X PATCH http://localhost:8000/api/notifications/read-all \
+    -H "Authorization: Bearer <JWT_TOKEN>"
+  ```
+
+#### 47. Dismiss / Delete Notification
+- **Endpoint:** `DELETE /api/notifications/{notification_id}`
+- **Access:** Authenticated (Owner only)
+- **Security Check:** Returns `403 Forbidden` if notification belongs to another user. Returns `404 Not Found` if not found.
+- **Success (200):**
+  ```json
+  {
+    "detail": "Notification deleted successfully."
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X DELETE http://localhost:8000/api/notifications/101 \
+    -H "Authorization: Bearer <JWT_TOKEN>"
+  ```
+
+#### 48. Get Notification Preferences
+- **Endpoint:** `GET /api/notifications/preferences`
+- **Access:** Authenticated
+- **Success (200):**
+  ```json
+  {
+    "preferences": [
+      {"category": "invoice", "enabled": true},
+      {"category": "payment", "enabled": true},
+      {"category": "subscription", "enabled": true},
+      {"category": "quotation", "enabled": true},
+      {"category": "account", "enabled": true},
+      {"category": "system", "enabled": true}
+    ]
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X GET http://localhost:8000/api/notifications/preferences \
+    -H "Authorization: Bearer <JWT_TOKEN>"
+  ```
+
+#### 49. Update Notification Preferences
+- **Endpoint:** `PUT /api/notifications/preferences`
+- **Access:** Authenticated
+- **Business Rule:** Essential security and integrity categories (`account`, `system`) cannot be disabled. If sent with `enabled: false`, the server automatically retains `enabled: true`.
+- **Request Body:**
+  ```json
+  {
+    "preferences": [
+      {"category": "invoice", "enabled": false},
+      {"category": "payment", "enabled": true}
+    ]
+  }
+  ```
+- **Success (200):** Complete updated list of preferences.
+- **Curl:**
+  ```bash
+  curl -X PUT http://localhost:8000/api/notifications/preferences \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer <JWT_TOKEN>" \
+    -d '{"preferences":[{"category":"invoice","enabled":false}]}'
+  ```
+
+#### 50. Run Scheduled Notification Checks
+- **Endpoint:** `POST /api/notifications/run-scheduled`
+- **Access:** **Admin role only** (Staff: 403, Customer: 403)
+- **Request Body (Optional):**
+  ```json
+  {
+    "as_of_date": "2026-10-31"
+  }
+  ```
+- **Operations Performed:**
+  1. **Invoice Reminders:** 3 days before due date (`due_soon`), 1 day overdue, 7 days overdue, 15 days overdue. Excludes paid (`paid_total >= total`) and cancelled invoices.
+  2. **Subscription Expiry Reminders:** 30 days, 7 days, 1 day before expiry for active subscriptions. Excludes closed subscriptions.
+  3. **Quotation Expiry Reminders:** 3 days and 1 day before expiry, and expired quotations (`as_of_date > expiry_date`).
+  4. **Deduplication:** Safe against duplicate executions via database event keys.
+- **Success (200):**
+  ```json
+  {
+    "notifications_created": 4,
+    "as_of_date": "2026-10-31",
+    "details": [
+      "Due soon (3d) notification sent to customer 12 for invoice INV-00045"
+    ]
+  }
+  ```
+- **Curl:**
+  ```bash
+  curl -X POST http://localhost:8000/api/notifications/run-scheduled \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer <ADMIN_TOKEN>" \
+    -d '{"as_of_date":"2026-10-31"}'
+  ```

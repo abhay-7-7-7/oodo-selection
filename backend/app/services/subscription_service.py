@@ -10,6 +10,7 @@ from app.models.product import Product, Variant
 from app.models.tax import Tax
 from app.models.quotation import QuotationTemplate
 from app.schemas.subscription import SubscriptionCreate, SubscriptionUpdate, SubscriptionLineCreate
+from app.services.notification_service import NotificationService
 
 
 def utcnow():
@@ -32,7 +33,6 @@ class SubscriptionService:
         data: SubscriptionCreate,
         current_user_id: Optional[int] = None
     ) -> Subscription:
-        # 1. Verify customer exists and has customer role
         customer = db.query(User).filter(User.id == data.customer_id).first()
         if not customer:
             raise HTTPException(
@@ -45,7 +45,6 @@ class SubscriptionService:
                 detail="Selected user is not a customer."
             )
 
-        # 2. Verify plan exists and is available on start_date
         plan = db.query(Plan).filter(Plan.id == data.plan_id).first()
         if not plan:
             raise HTTPException(
@@ -63,8 +62,8 @@ class SubscriptionService:
                 detail=f"Plan '{plan.name}' has expired before the start date ({data.start_date}). Valid until: {plan.valid_to}."
             )
 
-        # 3. Handle template vs manual lines
         lines_to_add = []
+        # Templates generate customer quotations with predefined validity; manual lines begin as drafts
         initial_status = "draft"
         expiry_date = None
 
@@ -100,7 +99,6 @@ class SubscriptionService:
                     "tax_id": m_line.tax_id
                 })
 
-        # 4. Validate lines, variants, and min_qty
         total_quantity = sum(line["quantity"] for line in lines_to_add)
         if total_quantity < plan.min_qty:
             raise HTTPException(
@@ -169,7 +167,6 @@ class SubscriptionService:
             )
             db.add(sub_line)
 
-        # Audit record
         audit = SubscriptionAudit(
             subscription_id=subscription.id,
             from_status="none",
@@ -178,6 +175,45 @@ class SubscriptionService:
             at=utcnow()
         )
         db.add(audit)
+
+        if initial_status == "quotation":
+            NotificationService.notify_user(
+                db=db,
+                user_id=subscription.customer_id,
+                title="New Quotation Available",
+                message=f"A new quotation {subscription.number} has been created for your review.",
+                category="quotation",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url="/portal/subscriptions",
+                event_key=f"subscription:{subscription.id}:quotation_created"
+            )
+            NotificationService.notify_roles(
+                db=db,
+                roles=["admin", "staff"],
+                title="New Quotation Created",
+                message=f"Quotation {subscription.number} created for customer {customer.name}.",
+                category="quotation",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url=f"/subscriptions/{subscription.id}",
+                event_key_prefix=f"subscription:{subscription.id}:admin_quote_created"
+            )
+        else:
+            NotificationService.notify_roles(
+                db=db,
+                roles=["admin", "staff"],
+                title="New Subscription Draft",
+                message=f"Draft subscription {subscription.number} created for customer {customer.name}.",
+                category="subscription",
+                priority="low",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url=f"/subscriptions/{subscription.id}",
+                event_key_prefix=f"subscription:{subscription.id}:draft_created"
+            )
 
         db.commit()
         db.refresh(subscription)
@@ -200,7 +236,7 @@ class SubscriptionService:
         current = subscription.status
         target = target_status.lower().strip()
 
-        # State transition validation matrix
+        # Enforce linear lifecycle: draft -> quotation -> confirmed -> active -> closed
         allowed_transitions = {
             "draft": ["quotation"],
             "quotation": ["confirmed"],
@@ -226,6 +262,108 @@ class SubscriptionService:
             at=utcnow()
         )
         db.add(audit)
+
+        if target == "quotation":
+            NotificationService.notify_user(
+                db=db,
+                user_id=subscription.customer_id,
+                title="New Quotation Available",
+                message=f"Quotation {subscription.number} is now ready for your review.",
+                category="quotation",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url="/portal/subscriptions",
+                event_key=f"subscription:{subscription.id}:quotation_transition"
+            )
+            NotificationService.notify_roles(
+                db=db,
+                roles=["admin", "staff"],
+                title="Quotation Generated",
+                message=f"Quotation {subscription.number} generated for {subscription.customer.name}.",
+                category="quotation",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url=f"/subscriptions/{subscription.id}",
+                event_key_prefix=f"subscription:{subscription.id}:admin_quote_transition"
+            )
+        elif target == "confirmed":
+            NotificationService.notify_user(
+                db=db,
+                user_id=subscription.customer_id,
+                title="Subscription Confirmed",
+                message=f"Your subscription {subscription.number} has been confirmed.",
+                category="subscription",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url="/portal/subscriptions",
+                event_key=f"subscription:{subscription.id}:confirmed"
+            )
+            NotificationService.notify_roles(
+                db=db,
+                roles=["admin", "staff"],
+                title="Subscription Confirmed",
+                message=f"Subscription {subscription.number} for customer {subscription.customer.name} has been confirmed.",
+                category="subscription",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url=f"/subscriptions/{subscription.id}",
+                event_key_prefix=f"subscription:{subscription.id}:admin_confirmed"
+            )
+        elif target == "active":
+            NotificationService.notify_user(
+                db=db,
+                user_id=subscription.customer_id,
+                title="Subscription Activated",
+                message=f"Your subscription {subscription.number} is now active.",
+                category="subscription",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url="/portal/subscriptions",
+                event_key=f"subscription:{subscription.id}:activated"
+            )
+            NotificationService.notify_roles(
+                db=db,
+                roles=["admin", "staff"],
+                title="Subscription Activated",
+                message=f"Subscription {subscription.number} for customer {subscription.customer.name} has been activated.",
+                category="subscription",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url=f"/subscriptions/{subscription.id}",
+                event_key_prefix=f"subscription:{subscription.id}:admin_activated"
+            )
+        elif target == "closed":
+            NotificationService.notify_user(
+                db=db,
+                user_id=subscription.customer_id,
+                title="Subscription Closed",
+                message=f"Your subscription {subscription.number} has been closed.",
+                category="subscription",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url="/portal/subscriptions",
+                event_key=f"subscription:{subscription.id}:closed"
+            )
+            NotificationService.notify_roles(
+                db=db,
+                roles=["admin", "staff"],
+                title="Subscription Closed",
+                message=f"Subscription {subscription.number} for customer {subscription.customer.name} has been closed.",
+                category="subscription",
+                priority="normal",
+                related_entity_type="subscription",
+                related_entity_id=subscription.id,
+                action_url=f"/subscriptions/{subscription.id}",
+                event_key_prefix=f"subscription:{subscription.id}:admin_closed"
+            )
+
         db.commit()
         db.refresh(subscription)
         return subscription
@@ -263,6 +401,32 @@ class SubscriptionService:
 
         subscription.is_paused = True
         subscription.paused_at = utcnow()
+
+        NotificationService.notify_user(
+            db=db,
+            user_id=subscription.customer_id,
+            title="Subscription Paused",
+            message=f"Your subscription {subscription.number} has been paused.",
+            category="subscription",
+            priority="normal",
+            related_entity_type="subscription",
+            related_entity_id=subscription.id,
+            action_url="/portal/subscriptions",
+            event_key=f"subscription:{subscription.id}:paused:{int(subscription.paused_at.timestamp())}"
+        )
+        NotificationService.notify_roles(
+            db=db,
+            roles=["admin", "staff"],
+            title="Subscription Paused",
+            message=f"Subscription {subscription.number} for customer {subscription.customer.name} has been paused.",
+            category="subscription",
+            priority="normal",
+            related_entity_type="subscription",
+            related_entity_id=subscription.id,
+            action_url=f"/subscriptions/{subscription.id}",
+            event_key_prefix=f"subscription:{subscription.id}:admin_paused:{int(subscription.paused_at.timestamp())}"
+        )
+
         db.commit()
         db.refresh(subscription)
         return subscription
@@ -304,6 +468,32 @@ class SubscriptionService:
             at=utcnow()
         )
         db.add(audit)
+
+        NotificationService.notify_user(
+            db=db,
+            user_id=subscription.customer_id,
+            title="Subscription Closed",
+            message=f"Your subscription {subscription.number} has been closed.",
+            category="subscription",
+            priority="normal",
+            related_entity_type="subscription",
+            related_entity_id=subscription.id,
+            action_url="/portal/subscriptions",
+            event_key=f"subscription:{subscription.id}:closed"
+        )
+        NotificationService.notify_roles(
+            db=db,
+            roles=["admin", "staff"],
+            title="Subscription Closed",
+            message=f"Subscription {subscription.number} for customer {subscription.customer.name} has been closed.",
+            category="subscription",
+            priority="normal",
+            related_entity_type="subscription",
+            related_entity_id=subscription.id,
+            action_url=f"/subscriptions/{subscription.id}",
+            event_key_prefix=f"subscription:{subscription.id}:admin_closed"
+        )
+
         db.commit()
         db.refresh(subscription)
         return subscription
@@ -377,6 +567,32 @@ class SubscriptionService:
             at=utcnow()
         )
         db.add(audit)
+
+        NotificationService.notify_user(
+            db=db,
+            user_id=new_sub.customer_id,
+            title="Subscription Renewal Created",
+            message=f"A renewal quotation {new_sub.number} for your subscription has been created.",
+            category="subscription",
+            priority="normal",
+            related_entity_type="subscription",
+            related_entity_id=new_sub.id,
+            action_url="/portal/subscriptions",
+            event_key=f"subscription:{new_sub.id}:renewed"
+        )
+        NotificationService.notify_roles(
+            db=db,
+            roles=["admin", "staff"],
+            title="Subscription Renewal Created",
+            message=f"Renewal quotation {new_sub.number} created for customer {old_sub.customer.name}.",
+            category="subscription",
+            priority="normal",
+            related_entity_type="subscription",
+            related_entity_id=new_sub.id,
+            action_url=f"/subscriptions/{new_sub.id}",
+            event_key_prefix=f"subscription:{new_sub.id}:admin_renewed"
+        )
+
         db.commit()
         db.refresh(new_sub)
         return new_sub

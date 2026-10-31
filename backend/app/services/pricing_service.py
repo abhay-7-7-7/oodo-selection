@@ -46,8 +46,6 @@ class PricingService:
         overall_subtotal = 0
         total_quantity = sum(item.quantity for item in items)
 
-        # 1. First pass: calculate base, variant extra, and subtotal per line
-        # Check for global default tax (applies_to == 'all')
         default_tax = db.query(Tax).filter(Tax.is_active.is_(True), Tax.applies_to == "all").first()
 
         for item in items:
@@ -82,10 +80,9 @@ class PricingService:
                 "tax_rate": tax_rate
             })
 
-        # 2. Evaluate discount if supplied, or discover eligible discounts
+        # Pick the provided discount or search for the first eligible active one
         chosen_discount = applied_discount
         if not chosen_discount:
-            # Look for active discounts valid on as_of_date
             candidates = db.query(Discount).filter(
                 Discount.is_active.is_(True),
                 Discount.start_date <= as_of_date,
@@ -97,15 +94,13 @@ class PricingService:
                     chosen_discount = disc
                     break
 
-        # 3. Apply discount if eligible
         overall_discount_total = 0
         if chosen_discount and PricingService.is_discount_eligible(chosen_discount, overall_subtotal, total_quantity, items):
             if chosen_discount.scope == "subscription":
-                # Subscription-wide discount
                 if chosen_discount.kind == "percent":
                     disc_pct = Decimal(str(chosen_discount.value))
                     overall_discount_total = quantize_paise(Decimal(overall_subtotal) * disc_pct / Decimal("100"))
-                else:  # fixed
+                else:
                     overall_discount_total = min(chosen_discount.value, overall_subtotal)
                 
                 # Apportion discount proportionally across lines to calculate taxes accurately
@@ -113,7 +108,7 @@ class PricingService:
                 for i, lb in enumerate(line_breakdowns):
                     if overall_subtotal > 0:
                         if i == len(line_breakdowns) - 1:
-                            # last line gets remaining difference to avoid rounding loss
+                            # Last line absorbs rounding differences to ensure exact totals
                             line_disc = remaining_discount
                         else:
                             ratio = Decimal(lb["line_subtotal"]) / Decimal(overall_subtotal)
@@ -127,7 +122,6 @@ class PricingService:
                     lb["taxable_amount"] = lb["line_subtotal"] - line_disc
 
             elif chosen_discount.scope == "product":
-                # Product-specific discount
                 matching_lines = [lb for lb in line_breakdowns if lb["item"].product.id == chosen_discount.product_id]
                 matching_subtotal = sum(lb["line_subtotal"] for lb in matching_lines)
                 if matching_lines and matching_subtotal > 0:
@@ -151,7 +145,7 @@ class PricingService:
                     
                     overall_discount_total = product_discount_total
 
-        # 4. Calculate taxes on post-discount taxable amount per line
+        # Apply taxes to post-discount taxable amounts
         overall_tax_total = 0
         for lb in line_breakdowns:
             taxable = lb["taxable_amount"]

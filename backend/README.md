@@ -90,7 +90,7 @@ All demo accounts are local-only and intended for testing and development:
 The test suite runs against an isolated SQLite test database and never touches production or demo data.
 
 ```bash
-# Run complete test suite
+# Run complete test suite (all 43 tests)
 python -m pytest tests -v
 ```
 
@@ -108,6 +108,21 @@ tests/test_billing.py::test_first_billing_run_creates_invoice_and_second_run_is_
 tests/test_billing.py::test_missed_billing_periods_are_recovered PASSED
 tests/test_billing.py::test_paused_and_closed_subscriptions_are_skipped PASSED
 tests/test_billing.py::test_dry_run_makes_no_persistent_changes PASSED
+tests/test_notifications.py::test_customer_registration_triggers_notifications PASSED
+tests/test_notifications.py::test_staff_creation_triggers_notifications PASSED
+tests/test_notifications.py::test_forgot_password_triggers_notification PASSED
+tests/test_notifications.py::test_get_notifications_and_filtering PASSED
+tests/test_notifications.py::test_mark_as_read_and_read_all PASSED
+tests/test_notifications.py::test_delete_notification PASSED
+tests/test_notifications.py::test_customer_isolation_and_security PASSED
+tests/test_notifications.py::test_notification_preferences_management PASSED
+tests/test_notifications.py::test_scheduled_run_admin_only_protection PASSED
+tests/test_notifications.py::test_scheduled_invoice_reminders PASSED
+tests/test_notifications.py::test_scheduled_subscription_and_quotation_reminders PASSED
+tests/test_notifications.py::test_scheduled_run_idempotence PASSED
+tests/test_notifications.py::test_subscription_lifecycle_notifications PASSED
+tests/test_notifications.py::test_payment_and_invoice_notifications PASSED
+tests/test_notifications.py::test_disabled_preference_prevents_notification PASSED
 tests/test_payments.py::test_payment_workflow PASSED
 tests/test_payments.py::test_cancelled_invoice_cannot_receive_payment PASSED
 tests/test_permissions.py::test_staff_cannot_create_staff PASSED
@@ -125,7 +140,7 @@ tests/test_subscriptions.py::test_subscription_minimum_quantity_enforced PASSED
 tests/test_subscriptions.py::test_illegal_status_transitions_rejected PASSED
 tests/test_subscriptions.py::test_pause_close_renew_gated_by_plan_flags PASSED
 
-============================= 28 passed in 7.85s ==============================
+============================= 43 passed in 15.33s =============================
 ```
 
 ---
@@ -183,22 +198,34 @@ backend/
 │   │   ├── audit.py         # Subscription audit transition logs
 │   │   ├── invoice.py       # Invoices, invoice lines, and price snapshots
 │   │   ├── payment.py       # Invoice payments
+│   │   ├── notification.py  # Notification and NotificationPreference models
 │   │   └── settings.py      # System settings
 │   ├── schemas/             # Pydantic v2 request/response schemas
-│   ├── api/                 # 42 Core API Routers
+│   │   └── notification.py  # Notification schemas and scheduled run contracts
+│   ├── api/                 # 50 Total API Routers (42 Core + 8 Notification Endpoints)
+│   │   └── notifications.py # Notification routes & scheduled checker
 │   ├── services/            # Pure business logic and domain services
 │   │   ├── auth_service.py
 │   │   ├── pricing_service.py
 │   │   ├── subscription_service.py
 │   │   ├── billing_service.py
 │   │   ├── payment_service.py
-│   │   └── report_service.py
+│   │   ├── report_service.py
+│   │   └── notification_service.py # Pure domain notification & date-trigger service
 │   └── core/                # Security, RBAC permissions, dependencies
 ├── scripts/
 │   ├── seed.py              # 10,000 subscriptions seeder
 │   ├── create_admin.py      # Admin bootstrapping script
 │   └── demo_scenario.py     # Part M acceptance scenario execution
-├── tests/                   # Pytest automated test suite
+├── tests/                   # Pytest automated test suite (43 passing tests)
+│   ├── test_auth.py
+│   ├── test_billing.py
+│   ├── test_payments.py
+│   ├── test_permissions.py
+│   ├── test_products_pricing.py
+│   ├── test_reports.py
+│   ├── test_subscriptions.py
+│   └── test_notifications.py# 15 comprehensive notification tests
 ├── requirements.txt         # Pinned production dependencies
 ├── .env.example             # Template environment configuration
 ├── .gitignore               # Ignored files (DB, pycache, env)
@@ -225,6 +252,11 @@ backend/
 | **MRR normalization** | Monthly equivalent across daily, weekly, monthly, yearly | `tests/test_reports.py` |
 | **10,000 subscriptions < 2s** | SQLite WAL mode + index optimization (46.24 ms achieved) | `scripts/seed.py` |
 | **Tenant isolation in customer portal** | Token-derived customer identity; 403 on cross-tenant access | `tests/test_permissions.py`, `demo_scenario.py` |
+| **In-App Notification Generation** | Role-based events for Admin, Staff, Customer across all business services | `tests/test_notifications.py` |
+| **Date-based Scheduled Checks** | Invoices (3d due, 1/7/15d overdue), Subs (30/7/1d expiring), Quotes (3/1d expiring, expired) | `tests/test_notifications.py` |
+| **Event Deduplication & Concurrency** | Database unique constraint on `(user_id, event_key)` | `tests/test_notifications.py` |
+| **Notification Isolation & Security** | Token-derived owner validation; 403 on foreign access or delete | `tests/test_notifications.py` |
+| **Preference Control with Security Override** | User category toggles; account security remains forced enabled | `tests/test_notifications.py` |
 
 ---
 

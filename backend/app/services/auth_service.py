@@ -13,6 +13,7 @@ from app.core.security import (
     hash_token,
 )
 from app.config import settings
+from app.services.notification_service import NotificationService
 
 
 def utcnow():
@@ -43,6 +44,33 @@ class AuthService:
         db.add(user)
         db.commit()
         db.refresh(user)
+
+        NotificationService.notify_user(
+            db=db,
+            user_id=user.id,
+            title="Welcome to Brightloop Software",
+            message=f"Welcome {user.name}! Your account has been registered successfully.",
+            category="account",
+            priority="normal",
+            related_entity_type="user",
+            related_entity_id=user.id,
+            action_url="/portal/account",
+            event_key=f"user:{user.id}:welcome"
+        )
+
+        NotificationService.notify_roles(
+            db=db,
+            roles=["admin", "staff"],
+            title="New Customer Registration",
+            message=f"New customer {user.name} ({user.email}) has registered.",
+            category="account",
+            priority="normal",
+            related_entity_type="user",
+            related_entity_id=user.id,
+            action_url=f"/customers/{user.id}",
+            event_key_prefix=f"user:{user.id}:admin_registered"
+        )
+        db.commit()
         return user
 
     @staticmethod
@@ -84,7 +112,7 @@ class AuthService:
             t_hash = hash_token(raw_token)
             expires = utcnow() + timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
             
-            # Invalidate previous unused tokens for this user
+            # Invalidate previous tokens so only the newest link is valid
             db.query(PasswordResetToken).filter(
                 PasswordResetToken.user_id == user.id,
                 PasswordResetToken.used_at.is_(None)
@@ -96,6 +124,20 @@ class AuthService:
                 expires_at=expires
             )
             db.add(reset_record)
+            db.flush()
+
+            NotificationService.notify_user(
+                db=db,
+                user_id=user.id,
+                title="Password Reset Requested",
+                message="A password reset link was requested for your account. If this was not you, please secure your account immediately.",
+                category="account",
+                priority="high",
+                related_entity_type="user",
+                related_entity_id=user.id,
+                action_url="/portal/account",
+                event_key=f"user:{user.id}:pw_reset:{reset_record.id}"
+            )
             
             reset_url = f"http://localhost:8000/reset-password?token={raw_token}"
             outbox_entry = Outbox(
@@ -169,4 +211,31 @@ class AuthService:
         db.add(staff_user)
         db.commit()
         db.refresh(staff_user)
+
+        NotificationService.notify_roles(
+            db=db,
+            roles=["admin"],
+            title="New Staff Account Created",
+            message=f"Staff account created for {staff_user.name} ({staff_user.email}).",
+            category="account",
+            priority="normal",
+            related_entity_type="user",
+            related_entity_id=staff_user.id,
+            action_url=f"/team/{staff_user.id}",
+            event_key_prefix=f"staff:{staff_user.id}:created"
+        )
+
+        NotificationService.notify_user(
+            db=db,
+            user_id=staff_user.id,
+            title="Welcome to Brightloop Staff Portal",
+            message=f"Welcome {staff_user.name}! Your staff account is active.",
+            category="account",
+            priority="normal",
+            related_entity_type="user",
+            related_entity_id=staff_user.id,
+            action_url="/staff/dashboard",
+            event_key=f"user:{staff_user.id}:welcome_staff"
+        )
+        db.commit()
         return staff_user

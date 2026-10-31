@@ -8,6 +8,7 @@ from app.models.subscription import Subscription
 from app.models.invoice import Invoice, InvoiceLine
 from app.models.discount import Discount
 from app.services.pricing_service import PricingService, PricingLineItem
+from app.services.notification_service import NotificationService
 
 
 def utcnow():
@@ -89,14 +90,13 @@ class BillingService:
             "items": []
         }
 
-        # 1. Fetch all subscriptions that are active, not paused, and have next_billing_date <= as_of_date
+        # Query all active or expiring subscriptions due on or before as_of_date
         all_subs = db.query(Subscription).filter(
             Subscription.status.in_(["active", "closed"]),
             Subscription.next_billing_date <= as_of_date
         ).all()
 
         for sub in all_subs:
-            # Check closed status
             if sub.status == "closed":
                 results["skipped"] += 1
                 results["items"].append({
@@ -106,7 +106,6 @@ class BillingService:
                 })
                 continue
 
-            # Check paused flag
             if sub.is_paused:
                 results["skipped"] += 1
                 results["items"].append({
@@ -116,7 +115,7 @@ class BillingService:
                 })
                 continue
 
-            # Check plan auto-close upon expiry
+            # Auto-close expired subscriptions if the plan is configured for it
             if sub.expiry_date and sub.next_billing_date and sub.next_billing_date > sub.expiry_date:
                 if sub.plan.auto_close and not dry_run:
                     sub.status = "closed"
@@ -129,10 +128,9 @@ class BillingService:
                 })
                 continue
 
-            # Process missed periods and current period sequentially up to as_of_date
+            # Catch up missed historical billing cycles sequentially until reaching as_of_date
             current_billing_start = sub.next_billing_date
             while current_billing_start <= as_of_date:
-                # If subscription has expired before this period, stop
                 if sub.expiry_date and current_billing_start > sub.expiry_date:
                     break
 
@@ -141,7 +139,7 @@ class BillingService:
                     sub.plan.period
                 )
 
-                # Check anti-double-billing database constraint / existing record
+                # Avoid duplicate invoices for already billed cycles
                 existing_invoice = db.query(Invoice).filter(
                     Invoice.subscription_id == sub.id,
                     Invoice.period_start == current_billing_start,
@@ -161,7 +159,6 @@ class BillingService:
                         db.commit()
                     continue
 
-                # Prepare line items for pricing engine
                 pricing_items = []
                 for sub_line in sub.lines:
                     pricing_items.append(
@@ -215,7 +212,6 @@ class BillingService:
                         db.add(invoice)
                         db.flush()
 
-                        # Add invoice lines with complete breakdown snapshots
                         for lb in pricing_result["lines"]:
                             item = lb["item"]
                             desc = item.product.name
@@ -251,15 +247,39 @@ class BillingService:
                             )
                             db.add(inv_line)
 
-                        # Increment discount usage atomically if discount applied
                         if pricing_result.get("applied_discount"):
                             disc = pricing_result["applied_discount"]
                             db.query(Discount).filter(Discount.id == disc.id).update(
                                 {Discount.times_used: Discount.times_used + 1}
                             )
 
-                        # Advance next billing date
                         sub.next_billing_date = next_start
+
+                        NotificationService.notify_user(
+                            db=db,
+                            user_id=invoice.customer_id,
+                            title="New Invoice Generated",
+                            message=f"Invoice {invoice.number} for ₹{invoice.total/100:.2f} has been generated for period {invoice.period_start} to {invoice.period_end}.",
+                            category="invoice",
+                            priority="normal",
+                            related_entity_type="invoice",
+                            related_entity_id=invoice.id,
+                            action_url="/portal/invoices",
+                            event_key=f"invoice:{invoice.id}:generated"
+                        )
+                        NotificationService.notify_roles(
+                            db=db,
+                            roles=["admin", "staff"],
+                            title="Invoice Generated",
+                            message=f"Invoice {invoice.number} generated for {sub.customer.name} (₹{invoice.total/100:.2f}).",
+                            category="invoice",
+                            priority="normal",
+                            related_entity_type="invoice",
+                            related_entity_id=invoice.id,
+                            action_url=f"/invoices/{invoice.id}",
+                            event_key_prefix=f"invoice:{invoice.id}:admin_generated"
+                        )
+
                         db.commit()
 
                         results["created"] += 1
@@ -281,6 +301,23 @@ class BillingService:
                         })
                     except Exception as e:
                         db.rollback()
+                        try:
+                            NotificationService.notify_roles(
+                                db=db,
+                                roles=["admin", "staff"],
+                                title="Billing Failure Alert",
+                                message=f"Billing failed for subscription {sub.number}: {str(e)}",
+                                category="system",
+                                priority="high",
+                                related_entity_type="subscription",
+                                related_entity_id=sub.id,
+                                action_url=f"/subscriptions/{sub.id}",
+                                event_key_prefix=f"sub:{sub.id}:billing_fail:{utcnow().strftime('%Y%m%d%H%M%S')}"
+                            )
+                            db.commit()
+                        except Exception:
+                            db.rollback()
+
                         results["failed"] += 1
                         results["items"].append({
                             "subscription_number": sub.number,
