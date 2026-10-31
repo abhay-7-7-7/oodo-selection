@@ -10,10 +10,11 @@ import {
   Lock,
   Mail,
   UserCheck,
+  Power,
+  RefreshCw,
 } from 'lucide-react';
 import { apiClient } from 'src/services/apiClient';
 import { useAuth } from 'src/context/AuthContext';
-import { loadState } from 'src/services/mockStore';
 import { User, UserRole } from 'src/types';
 import { formatDate } from 'src/utils/calculations';
 import { toast } from 'sonner';
@@ -23,18 +24,25 @@ export const StaffManagementPage: React.FC = () => {
   const [staffList, setStaffList] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: 'staff' as 'admin' | 'staff',
+    password: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const loadStaff = () => {
-    const state = loadState();
-    // Exclude customers from staff directory
-    const internal = state.users.filter((u) => u.role === 'admin' || u.role === 'staff');
-    setStaffList(internal);
+  const loadStaff = async () => {
+    setLoading(true);
+    try {
+      const data = await apiClient.getStaff();
+      setStaffList(data);
+    } catch (err: any) {
+      toast.error('Failed to load staff list from backend');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -53,12 +61,27 @@ export const StaffManagementPage: React.FC = () => {
       await apiClient.createStaff(formData);
       toast.success(`Staff member ${formData.name} added successfully`);
       setIsModalOpen(false);
-      setFormData({ name: '', email: '', role: 'staff' });
+      setFormData({ name: '', email: '', role: 'staff', password: '' });
       loadStaff();
     } catch (err: any) {
       toast.error(err.message || 'Failed to create staff account');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleToggleStatus = async (member: User) => {
+    if (!isAdmin) return;
+    try {
+      const updated = await apiClient.toggleStaffStatus(String(member.id));
+      setStaffList(prev =>
+        prev.map(s => (s.id === member.id ? { ...s, is_active: (updated as any).is_active } : s))
+      );
+      toast.success(
+        `User ${member.name} is now ${(updated as any).is_active ? 'active' : 'deactivated'}`
+      );
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update user status');
     }
   };
 
@@ -74,16 +97,24 @@ export const StaffManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Staff Management</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
               <Lock className="w-3 h-3" /> Admin Restricted
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Manage internal team members, assign operational roles, and enforce security policies.
+            Manage internal team members, assign operational roles, activate/deactivate accounts and view user details.
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadStaff}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-medium transition cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
           {isAdmin ? (
             <button
               onClick={() => setIsModalOpen(true)}
@@ -101,52 +132,39 @@ export const StaffManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Persona Notice for Judges */}
-      <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-        <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-        <div className="text-xs sm:text-sm text-slate-700 space-y-1">
-          <span className="font-semibold text-blue-900">Role-Based Access Control (RBAC) Verification</span>
-          <p className="text-slate-600">
-            Current session is authenticated as{' '}
-            <strong className="text-blue-800 uppercase">{user?.role}</strong> ({user?.name}).
-            Only Admins are permitted to add staff or configure system pricing/discounts. Use the 1-click persona switcher in the top navigation header to test permissions as different users.
-          </p>
-        </div>
-      </div>
-
-      {/* Staff Directory Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* Directory Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="relative max-w-sm w-full">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
             <input
               type="text"
               placeholder="Search staff by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <span className="text-xs text-slate-500 font-medium">
-            {filteredStaff.length} active internal accounts
-          </span>
+          <div className="text-xs text-slate-500 font-medium">
+            Showing {filteredStaff.length} internal team member{filteredStaff.length !== 1 ? 's' : ''}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs uppercase tracking-wider">
+            <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4">Staff Member</th>
                 <th className="py-3 px-4">Email Address</th>
                 <th className="py-3 px-4">Role</th>
                 <th className="py-3 px-4">Created Date</th>
                 <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Permissions</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredStaff.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/80">
+                <tr key={member.id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs">
@@ -169,12 +187,31 @@ export const StaffManagementPage: React.FC = () => {
                   </td>
                   <td className="py-3.5 px-4 text-slate-600 text-xs">{formatDate(member.created_at)}</td>
                   <td className="py-3.5 px-4 text-center">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
-                      Active
-                    </span>
+                    {(member as any).is_active !== false ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">
+                        Deactivated
+                      </span>
+                    )}
                   </td>
-                  <td className="py-3.5 px-4 text-right text-xs text-slate-500">
-                    {member.role === 'admin' ? 'Full System & Catalog Access' : 'Sales, Billing & Payments'}
+                  <td className="py-3.5 px-4 text-right">
+                    {isAdmin && String(member.id) !== String(user?.id) && (
+                      <button
+                        onClick={() => handleToggleStatus(member)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium border transition cursor-pointer ${
+                          (member as any).is_active !== false
+                            ? 'text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100'
+                            : 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                        }`}
+                        title="Toggle active status"
+                      >
+                        <Power className="w-3 h-3" />
+                        {(member as any).is_active !== false ? 'Deactivate' : 'Activate'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -226,6 +263,19 @@ export const StaffManagementPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Initial Password (Optional)
+                </label>
+                <input
+                  type="password"
+                  placeholder="Defaults to StaffPassword@2026"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
                   Access Role *
                 </label>
                 <select
@@ -249,7 +299,7 @@ export const StaffManagementPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm cursor-pointer disabled:opacity-60"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer"
                 >
                   {submitting ? 'Creating...' : 'Create Account'}
                 </button>

@@ -472,6 +472,34 @@ export const apiClient = {
     return mapUser(res);
   },
 
+  async getStaff(): Promise<User[]> {
+    const res = await request<any[]>('/staff');
+    return (res || []).map(mapUser);
+  },
+
+  async toggleStaffStatus(id: string): Promise<User> {
+    const res = await request<any>(`/staff/${id}/status`, {
+      method: 'PUT',
+    });
+    return mapUser(res);
+  },
+
+  async updateProfile(data: { name?: string; phone?: string; company?: string }): Promise<User> {
+    const res = await request<any>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return mapUser(res);
+  },
+
+  async changePassword(data: { current_password: string; new_password: string }): Promise<{ message: string }> {
+    const res = await request<any>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return res;
+  },
+
   async getOutbox(): Promise<OutboxMessage[]> {
     const res = await request<any>('/outbox?page_size=100');
     const items = res.items || [];

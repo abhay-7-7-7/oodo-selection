@@ -10,6 +10,9 @@ export interface User {
   role: UserRole;
   created_at: string;
   customer_id?: string; // Present if role is customer
+  phone?: string;
+  company?: string;
+  is_active?: boolean;
 }
 
 export interface Customer {

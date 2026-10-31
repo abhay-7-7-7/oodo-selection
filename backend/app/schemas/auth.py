@@ -91,3 +91,14 @@ class OutboxListResponse(BaseModel):
     page: int
     page_size: int
     total: int
+
+
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    company: Optional[str] = None
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=9)

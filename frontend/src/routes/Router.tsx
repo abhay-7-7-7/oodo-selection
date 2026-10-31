@@ -1,5 +1,5 @@
 // Brightloop Application Router — Complete Route Configuration
-// Covers all 54-endpoint modules, customer portal, novelty features, and auth flows
+// Covers all core business modules, role-based navigation, customer portal, and auth flows
 
 import { lazy } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router';
@@ -28,12 +28,10 @@ const NotFound = Loadable(lazy(() => import('../views/auth/NotFound')));
 const FinanceDashboard = Loadable(lazy(() => import('../views/dashboard/FinanceDashboard')));
 
 /* ═══════════════════════════════════════
-   SALES (FullLayout)
+   CUSTOMER MANAGEMENT (FullLayout)
 ═══════════════════════════════════════ */
 const CustomerList = Loadable(lazy(() => import('../views/customers/CustomerList')));
 const CustomerDetail = Loadable(lazy(() => import('../views/customers/CustomerDetail')));
-const Quotations = Loadable(lazy(() => import('../views/sales/Quotations')));
-const QuotationTemplates = Loadable(lazy(() => import('../views/sales/QuotationTemplates')));
 
 /* ═══════════════════════════════════════
    CATALOG (FullLayout)
@@ -41,46 +39,27 @@ const QuotationTemplates = Loadable(lazy(() => import('../views/sales/QuotationT
 const Products = Loadable(lazy(() => import('../views/catalog/Products')));
 const ProductVariants = Loadable(lazy(() => import('../views/catalog/ProductVariants')));
 const SubscriptionPlans = Loadable(lazy(() => import('../views/catalog/SubscriptionPlans')));
-
-/* ═══════════════════════════════════════
-   PRICING (FullLayout)
-═══════════════════════════════════════ */
 const Taxes = Loadable(lazy(() => import('../views/pricing/Taxes')));
 const Discounts = Loadable(lazy(() => import('../views/pricing/Discounts')));
-const DiscountGuardrail = Loadable(lazy(() => import('../views/pricing/DiscountGuardrail')));
 
 /* ═══════════════════════════════════════
-   SUBSCRIPTIONS (FullLayout)
+   SUBSCRIPTIONS & SALES (FullLayout)
 ═══════════════════════════════════════ */
+const Quotations = Loadable(lazy(() => import('../views/sales/Quotations')));
+const QuotationTemplates = Loadable(lazy(() => import('../views/sales/QuotationTemplates')));
 const SubscriptionList = Loadable(lazy(() => import('../views/subscriptions/SubscriptionList')));
 const SubscriptionDetail = Loadable(lazy(() => import('../views/subscriptions/SubscriptionDetail')));
-const RenewalRadar = Loadable(lazy(() => import('../views/subscriptions/RenewalRadar')));
-
-/* ═══════════════════════════════════════
-   BILLING (FullLayout)
-═══════════════════════════════════════ */
-const Invoices = Loadable(lazy(() => import('../views/billing/Invoices')));
 const BillingRuns = Loadable(lazy(() => import('../views/billing/BillingRuns')));
 
 /* ═══════════════════════════════════════
-   PAYMENTS (FullLayout)
+   FINANCE (FullLayout)
 ═══════════════════════════════════════ */
+const Invoices = Loadable(lazy(() => import('../views/billing/Invoices')));
 const Payments = Loadable(lazy(() => import('../views/payments/Payments')));
-const BankMatcher = Loadable(lazy(() => import('../views/payments/BankMatcher')));
-
-/* ═══════════════════════════════════════
-   INTELLIGENCE (Novelties N2, N4)
-═══════════════════════════════════════ */
-const IntegrityAuditor = Loadable(lazy(() => import('../views/intelligence/IntegrityAuditor')));
-const BillExplainer = Loadable(lazy(() => import('../views/intelligence/BillExplainer')));
-
-/* ═══════════════════════════════════════
-   REPORTS (FullLayout)
-═══════════════════════════════════════ */
 const FinanceReports = Loadable(lazy(() => import('../views/reports/FinanceReports')));
 
 /* ═══════════════════════════════════════
-   NOTIFICATIONS (FullLayout)
+   COMMUNICATION (FullLayout)
 ═══════════════════════════════════════ */
 const NotificationsPage = Loadable(lazy(() => import('../views/notifications/Notifications')));
 
@@ -88,8 +67,18 @@ const NotificationsPage = Loadable(lazy(() => import('../views/notifications/Not
    ADMINISTRATION (FullLayout)
 ═══════════════════════════════════════ */
 const StaffManagement = Loadable(lazy(() => import('../views/admin/StaffManagement')));
-const Outbox = Loadable(lazy(() => import('../views/admin/Outbox')));
 const Settings = Loadable(lazy(() => import('../views/admin/Settings')));
+const ProfilePage = Loadable(lazy(() => import('../views/profile/Profile')));
+const Outbox = Loadable(lazy(() => import('../views/admin/Outbox')));
+
+/* ═══════════════════════════════════════
+   NOVELTY WORKSPACES (Preserved)
+═══════════════════════════════════════ */
+const DiscountGuardrail = Loadable(lazy(() => import('../views/pricing/DiscountGuardrail')));
+const RenewalRadar = Loadable(lazy(() => import('../views/subscriptions/RenewalRadar')));
+const BankMatcher = Loadable(lazy(() => import('../views/payments/BankMatcher')));
+const IntegrityAuditor = Loadable(lazy(() => import('../views/intelligence/IntegrityAuditor')));
+const BillExplainer = Loadable(lazy(() => import('../views/intelligence/BillExplainer')));
 
 /* ═══════════════════════════════════════
    CUSTOMER PORTAL (PortalLayout)
@@ -98,6 +87,7 @@ const PortalDashboard = Loadable(lazy(() => import('../views/portal/PortalDashbo
 const PortalSubscriptions = Loadable(lazy(() => import('../views/portal/PortalSubscriptions')));
 const PortalInvoices = Loadable(lazy(() => import('../views/portal/PortalInvoices')));
 const PortalPayments = Loadable(lazy(() => import('../views/portal/PortalPayments')));
+const PortalNotificationsPage = Loadable(lazy(() => import('../views/portal/PortalNotifications')));
 const PortalProfile = Loadable(lazy(() => import('../views/portal/PortalProfile')));
 
 /* ═══════════════════════════════════════
@@ -116,57 +106,53 @@ const Router = [
       // ── Overview ──────────────────────────────────────────────────────────────
       { path: '/dashboard', element: <FinanceDashboard /> },
 
-      // ── Sales ─────────────────────────────────────────────────────────────────
+      // ── Customer Management ───────────────────────────────────────────────────
       { path: '/customers', element: <CustomerList /> },
       { path: '/customers/:id', element: <CustomerDetail /> },
-      { path: '/quotations', element: <Quotations /> },
-      { path: '/quotation-templates', element: <QuotationTemplates /> },
 
       // ── Catalog ───────────────────────────────────────────────────────────────
-      { path: '/products', element: <Products /> },
       { path: '/catalog/products', element: <Products /> },
-      { path: '/product-variants', element: <ProductVariants /> },
+      { path: '/products', element: <Products /> },
       { path: '/catalog/variants', element: <ProductVariants /> },
-      { path: '/subscription-plans', element: <SubscriptionPlans /> },
+      { path: '/product-variants', element: <ProductVariants /> },
       { path: '/catalog/plans', element: <SubscriptionPlans /> },
-
-      // ── Pricing ───────────────────────────────────────────────────────────────
-      { path: '/taxes', element: <Taxes /> },
+      { path: '/subscription-plans', element: <SubscriptionPlans /> },
       { path: '/catalog/taxes', element: <Taxes /> },
-      { path: '/discounts', element: <Discounts /> },
+      { path: '/taxes', element: <Taxes /> },
       { path: '/catalog/discounts', element: <Discounts /> },
-      { path: '/discount-guardrail', element: <DiscountGuardrail /> },
+      { path: '/discounts', element: <Discounts /> },
 
       // ── Subscriptions ─────────────────────────────────────────────────────────
+      { path: '/quotations', element: <Quotations /> },
+      { path: '/quotation-templates', element: <QuotationTemplates /> },
       { path: '/subscriptions', element: <SubscriptionList /> },
       { path: '/subscriptions/:id', element: <SubscriptionDetail /> },
-      { path: '/renewal-radar', element: <RenewalRadar /> },
-
-      // ── Billing ───────────────────────────────────────────────────────────────
-      { path: '/invoices', element: <Invoices /> },
       { path: '/billing-runs', element: <BillingRuns /> },
 
-      // ── Payments ──────────────────────────────────────────────────────────────
+      // ── Finance ───────────────────────────────────────────────────────────────
+      { path: '/invoices', element: <Invoices /> },
       { path: '/payments', element: <Payments /> },
-      { path: '/bank-matcher', element: <BankMatcher /> },
-
-      // ── Intelligence (Novelties N2, N4) ───────────────────────────────────────
-      { path: '/integrity-auditor', element: <IntegrityAuditor /> },
-      { path: '/bill-explainer', element: <BillExplainer /> },
-
-      // ── Reports ───────────────────────────────────────────────────────────────
       { path: '/reports', element: <FinanceReports /> },
 
-      // ── Notifications ─────────────────────────────────────────────────────────
+      // ── Communication ─────────────────────────────────────────────────────────
       { path: '/notifications', element: <NotificationsPage /> },
 
       // ── Administration ────────────────────────────────────────────────────────
-      { path: '/staff', element: <StaffManagement /> },
       { path: '/admin/staff', element: <StaffManagement /> },
-      { path: '/outbox', element: <Outbox /> },
+      { path: '/staff', element: <StaffManagement /> },
+      { path: '/staff-management', element: <Navigate to="/admin/staff" replace /> },
       { path: '/settings', element: <Settings /> },
+      { path: '/profile', element: <ProfilePage /> },
 
-      // ── Error within layout ───────────────────────────────────────────────────
+      // ── Preserved Aux Modules ─────────────────────────────────────────────────
+      { path: '/outbox', element: <Outbox /> },
+      { path: '/discount-guardrail', element: <DiscountGuardrail /> },
+      { path: '/renewal-radar', element: <RenewalRadar /> },
+      { path: '/bank-matcher', element: <BankMatcher /> },
+      { path: '/integrity-auditor', element: <IntegrityAuditor /> },
+      { path: '/bill-explainer', element: <BillExplainer /> },
+
+      // ── Catch-all inside internal layout ──────────────────────────────────────
       { path: '*', element: <Navigate to="/auth/404" replace /> },
     ],
   },
@@ -181,6 +167,7 @@ const Router = [
       { path: '/portal/subscriptions', element: <PortalSubscriptions /> },
       { path: '/portal/invoices', element: <PortalInvoices /> },
       { path: '/portal/payments', element: <PortalPayments /> },
+      { path: '/portal/notifications', element: <PortalNotificationsPage /> },
       { path: '/portal/profile', element: <PortalProfile /> },
       { path: '*', element: <Navigate to="/portal/dashboard" replace /> },
     ],
@@ -191,7 +178,6 @@ const Router = [
     path: '/',
     element: <BlankLayout />,
     children: [
-      // Brightloop Auth routes
       { path: '/auth/login', element: <Login /> },
       { path: '/login', element: <Login /> },
       { path: '/auth/signup', element: <SignUp /> },
@@ -202,14 +188,7 @@ const Router = [
       { path: '/reset-password', element: <ResetPassword /> },
       { path: '/auth/403', element: <AccessDenied /> },
       { path: '/auth/404', element: <NotFound /> },
-
-      // Redirect legacy paths
-      { path: '/auth/auth2/login', element: <Navigate to="/auth/login" replace /> },
-      { path: '/auth/auth2/register', element: <Navigate to="/auth/signup" replace /> },
-      { path: '/auth/auth2/forgot-password', element: <Navigate to="/auth/forgot-password" replace /> },
-      { path: '/auth/maintenance', element: <Navigate to="/dashboard" replace /> },
-      { path: '404', element: <NotFound /> },
-
+      { path: '/404', element: <NotFound /> },
       { path: '*', element: <Navigate to="/auth/404" replace /> },
     ],
   },

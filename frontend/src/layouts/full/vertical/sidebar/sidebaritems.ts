@@ -1,32 +1,28 @@
 // Brightloop Sidebar Menu Items Configuration
-// Mapped strictly to Section 4 Application Navigation and Novelty features
+// Strictly following core role-based navigation specification
 
 import {
   BarChart3,
   Users,
   FileSpreadsheet,
-  FileText,
   Package,
   Layers,
   CalendarDays,
   Percent,
   Receipt,
-  ShieldAlert,
   Repeat,
-  Radio,
   CreditCard,
   Building2,
-  Sparkles,
-  HelpCircle,
-  FileCheck2,
-  Inbox,
-  Settings,
-  UserCog,
-  LucideIcon,
-  DollarSign,
+  FileText,
   TrendingUp,
   Bell,
+  UserCog,
+  Settings,
+  User,
+  LucideIcon,
 } from 'lucide-react';
+
+export type ChildItem = MenuItem;
 
 export interface MenuItem {
   heading?: string;
@@ -45,11 +41,9 @@ export interface MenuItem {
   external?: boolean;
 }
 
-export type ChildItem = MenuItem;
-
 export const getSidebarItems = (role: 'admin' | 'staff' | 'customer'): MenuItem[] => {
+  // ── Customer Portal Navigation ─────────────────────────────────────────────
   if (role === 'customer') {
-    // Dedicated Customer Portal Navigation
     return [
       {
         heading: 'CUSTOMER PORTAL',
@@ -74,242 +68,235 @@ export const getSidebarItems = (role: 'admin' | 'staff' | 'customer'): MenuItem[
       },
       {
         id: 'cust-pays',
-        name: 'Payment History',
+        name: 'My Payments',
         icon: CreditCard,
         to: '/portal/payments',
       },
       {
+        id: 'cust-notifs',
+        name: 'My Notifications',
+        icon: Bell,
+        to: '/portal/notifications',
+      },
+      {
         id: 'cust-prof',
-        name: 'Company Profile',
+        name: 'My Profile',
         icon: Building2,
         to: '/portal/profile',
       },
     ];
   }
 
-  // Internal Management Navigation (Admin & Staff)
-  const items: MenuItem[] = [
-    // 1. OVERVIEW
+  // ── Staff Navigation (Permitted Operations Only) ───────────────────────────
+  if (role === 'staff') {
+    return [
+      {
+        heading: 'OVERVIEW',
+      },
+      {
+        id: 'staff-dashboard',
+        name: 'Dashboard',
+        icon: BarChart3,
+        to: '/dashboard',
+      },
+      {
+        heading: 'CUSTOMER MANAGEMENT',
+      },
+      {
+        id: 'staff-customers',
+        name: 'Customers',
+        icon: Users,
+        to: '/customers',
+      },
+      {
+        heading: 'SUBSCRIPTIONS',
+      },
+      {
+        id: 'staff-quotations',
+        name: 'Quotations',
+        icon: FileSpreadsheet,
+        to: '/quotations',
+      },
+      {
+        id: 'staff-subscriptions',
+        name: 'Subscriptions',
+        icon: Repeat,
+        to: '/subscriptions',
+      },
+      {
+        id: 'staff-billing-runs',
+        name: 'Billing Runs',
+        icon: TrendingUp,
+        to: '/billing-runs',
+      },
+      {
+        heading: 'FINANCE',
+      },
+      {
+        id: 'staff-invoices',
+        name: 'Invoices',
+        icon: FileText,
+        to: '/invoices',
+      },
+      {
+        id: 'staff-payments',
+        name: 'Payments',
+        icon: CreditCard,
+        to: '/payments',
+      },
+      {
+        id: 'staff-reports',
+        name: 'Finance Reports',
+        icon: BarChart3,
+        to: '/reports',
+      },
+      {
+        heading: 'COMMUNICATION',
+      },
+      {
+        id: 'staff-notifications',
+        name: 'Notification Centre',
+        icon: Bell,
+        to: '/notifications',
+      },
+      {
+        heading: 'ADMINISTRATION',
+      },
+      {
+        id: 'staff-profile',
+        name: 'My Profile',
+        icon: User,
+        to: '/profile',
+      },
+    ];
+  }
+
+  // ── Admin Navigation (Full System Access) ──────────────────────────────────
+  return [
     {
       heading: 'OVERVIEW',
     },
     {
-      id: 'nav-dashboard',
-      name: 'Finance Dashboard',
+      id: 'admin-dashboard',
+      name: 'Dashboard',
       icon: BarChart3,
-      to: '/',
-    },
-
-    // 2. SALES
-    {
-      heading: 'SALES',
+      to: '/dashboard',
     },
     {
-      id: 'nav-customers',
+      heading: 'CUSTOMER MANAGEMENT',
+    },
+    {
+      id: 'admin-customers',
       name: 'Customers',
       icon: Users,
       to: '/customers',
     },
     {
-      id: 'nav-quotations',
+      heading: 'CATALOG',
+    },
+    {
+      id: 'admin-products',
+      name: 'Products',
+      icon: Package,
+      to: '/catalog/products',
+    },
+    {
+      id: 'admin-variants',
+      name: 'Product Variants',
+      icon: Layers,
+      to: '/catalog/variants',
+    },
+    {
+      id: 'admin-plans',
+      name: 'Subscription Plans',
+      icon: CalendarDays,
+      to: '/catalog/plans',
+    },
+    {
+      id: 'admin-taxes',
+      name: 'Taxes',
+      icon: Receipt,
+      to: '/catalog/taxes',
+    },
+    {
+      id: 'admin-discounts',
+      name: 'Discounts',
+      icon: Percent,
+      to: '/catalog/discounts',
+    },
+    {
+      heading: 'SUBSCRIPTIONS',
+    },
+    {
+      id: 'admin-quotations',
       name: 'Quotations',
       icon: FileSpreadsheet,
       to: '/quotations',
     },
     {
-      id: 'nav-templates',
-      name: 'Quotation Templates',
-      icon: FileCheck2,
-      to: '/quotation-templates',
-    },
-
-    // 3. CATALOG
-    {
-      heading: 'CATALOG',
-    },
-    {
-      id: 'nav-products',
-      name: 'Products',
-      icon: Package,
-      to: '/products',
-    },
-    {
-      id: 'nav-variants',
-      name: 'Product Variants',
-      icon: Layers,
-      to: '/product-variants',
-    },
-    {
-      id: 'nav-plans',
-      name: 'Subscription Plans',
-      icon: CalendarDays,
-      to: '/subscription-plans',
-    },
-
-    // 4. PRICING
-    {
-      heading: 'PRICING',
-    },
-    {
-      id: 'nav-taxes',
-      name: 'Taxes',
-      icon: Receipt,
-      to: '/taxes',
-    },
-    {
-      id: 'nav-discounts',
-      name: 'Discounts',
-      icon: Percent,
-      to: '/discounts',
-    },
-    {
-      id: 'nav-guardrail',
-      name: 'Discount Guardrail',
-      icon: ShieldAlert,
-      to: '/discount-guardrail',
-      badge: true,
-      badgeContent: 'N1',
-      badgeType: 'teal',
-    },
-
-    // 5. SUBSCRIPTIONS
-    {
-      heading: 'SUBSCRIPTIONS',
-    },
-    {
-      id: 'nav-all-subs',
-      name: 'All Subscriptions',
+      id: 'admin-subscriptions',
+      name: 'Subscriptions',
       icon: Repeat,
       to: '/subscriptions',
     },
     {
-      id: 'nav-radar',
-      name: 'Renewal Radar',
-      icon: Radio,
-      to: '/renewal-radar',
-      badge: true,
-      badgeContent: 'N5',
-      badgeType: 'teal',
-    },
-
-    // 6. BILLING
-    {
-      heading: 'BILLING',
+      id: 'admin-billing-runs',
+      name: 'Billing Runs',
+      icon: TrendingUp,
+      to: '/billing-runs',
     },
     {
-      id: 'nav-invoices',
+      heading: 'FINANCE',
+    },
+    {
+      id: 'admin-invoices',
       name: 'Invoices',
       icon: FileText,
       to: '/invoices',
     },
     {
-      id: 'nav-billing-runs',
-      name: 'Billing Runs',
-      icon: TrendingUp,
-      to: '/billing-runs',
-    },
-
-    // 7. PAYMENTS
-    {
-      heading: 'PAYMENTS',
-    },
-    {
-      id: 'nav-payments',
-      name: 'Payment Records',
+      id: 'admin-payments',
+      name: 'Payments',
       icon: CreditCard,
       to: '/payments',
     },
     {
-      id: 'nav-bank-matcher',
-      name: 'Bank Matcher',
-      icon: DollarSign,
-      to: '/bank-matcher',
-      badge: true,
-      badgeContent: 'N3',
-      badgeType: 'teal',
-    },
-
-    // 8. INTELLIGENCE
-    {
-      heading: 'INTELLIGENCE',
-    },
-    {
-      id: 'nav-integrity',
-      name: 'Integrity Auditor',
-      icon: Sparkles,
-      to: '/integrity-auditor',
-      badge: true,
-      badgeContent: 'N2',
-      badgeType: 'teal',
-    },
-    {
-      id: 'nav-explainer',
-      name: 'Bill Change Explainer',
-      icon: HelpCircle,
-      to: '/bill-explainer',
-      badge: true,
-      badgeContent: 'N4',
-      badgeType: 'teal',
-    },
-
-    // 9. REPORTS
-    {
-      heading: 'REPORTS',
-    },
-    {
-      id: 'nav-reports',
+      id: 'admin-reports',
       name: 'Finance Reports',
       icon: BarChart3,
       to: '/reports',
     },
-
-    // 9b. COMMUNICATION
     {
       heading: 'COMMUNICATION',
     },
     {
-      id: 'nav-notifications',
-      name: 'Notifications',
+      id: 'admin-notifications',
+      name: 'Notification Centre',
       icon: Bell,
       to: '/notifications',
     },
-
-    // 10. ADMINISTRATION
     {
       heading: 'ADMINISTRATION',
     },
-  ];
-
-  // Admin-only Staff Management (strictly hidden from staff and customer)
-  if (role === 'admin') {
-    items.push({
-      id: 'nav-staff',
-      name: 'Staff Management',
-      icon: UserCog,
-      to: '/staff-management',
-      adminOnly: true,
-    });
-  }
-
-  items.push(
     {
-      id: 'nav-outbox',
-      name: 'Outbox',
-      icon: Inbox,
-      to: '/outbox',
-      badge: true,
-      badgeContent: 'N6',
-      badgeType: 'secondary',
+      id: 'admin-users',
+      name: 'User Management',
+      icon: UserCog,
+      to: '/admin/staff',
     },
     {
-      id: 'nav-settings',
+      id: 'admin-settings',
       name: 'Settings',
       icon: Settings,
       to: '/settings',
-    }
-  );
-
-  return items;
+    },
+    {
+      id: 'admin-profile',
+      name: 'My Profile',
+      icon: User,
+      to: '/profile',
+    },
+  ];
 };
 
 export const SidebarContent = getSidebarItems('admin');

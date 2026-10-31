@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Check,
   LogOut,
+  Bell,
 } from 'lucide-react';
 import { Badge } from 'src/components/ui/badge';
 import {
@@ -37,10 +38,11 @@ export const PortalLayout: FC = () => {
 
   const navLinks = [
     { name: 'My Dashboard', to: '/portal', icon: BarChart3, exact: true },
-    { name: 'Subscriptions', to: '/portal/subscriptions', icon: Repeat },
-    { name: 'Invoices', to: '/portal/invoices', icon: FileText },
-    { name: 'Payment History', to: '/portal/payments', icon: CreditCard },
-    { name: 'Company Profile', to: '/portal/profile', icon: Building2 },
+    { name: 'My Subscriptions', to: '/portal/subscriptions', icon: Repeat },
+    { name: 'My Invoices', to: '/portal/invoices', icon: FileText },
+    { name: 'My Payments', to: '/portal/payments', icon: CreditCard },
+    { name: 'My Notifications', to: '/portal/notifications', icon: Bell },
+    { name: 'My Profile', to: '/portal/profile', icon: Building2 },
   ];
 
   const roles: Array<{ id: UserRole; name: string; title: string; icon: typeof Shield }> = [
@@ -150,25 +152,25 @@ export const PortalLayout: FC = () => {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`flex flex-col items-center gap-1 px-2 py-1 rounded text-[11px] font-medium ${
-                  isActive ? 'text-blue-600 font-bold' : 'text-muted-foreground'
+                className={`flex flex-col items-center gap-1 py-1 px-2 rounded text-[10px] font-medium transition ${
+                  isActive ? 'text-blue-600 font-bold' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                <span>{link.name}</span>
+                <span>{link.name.replace('My ', '')}</span>
               </Link>
             );
           })}
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Main Portal Viewport */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-6">
+      <div className="mt-auto">
         <Footer />
       </div>
     </div>
