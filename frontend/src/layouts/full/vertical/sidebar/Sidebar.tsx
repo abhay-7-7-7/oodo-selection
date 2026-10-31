@@ -1,57 +1,87 @@
 import React from 'react';
 import NavCollapse from './nav-collapse';
-import SimpleBar from 'simplebar-react';
 import FullLogo from '../../shared/logo/FullLogo';
 import { useAuth } from 'src/context/AuthContext';
 import { getSidebarItems } from './sidebaritems';
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-} from 'src/components/ui/sidebar';
 import { NavSecondary } from './NavSecondary';
 import { NavUser } from './NavUser';
 import { Badge } from 'src/components/ui/badge';
+import { useSidebar } from 'src/components/ui/sidebar';
+import { Sheet, SheetContent } from 'src/components/ui/sheet';
+import { cn } from 'src/lib/utils';
+import { PanelLeftClose } from 'lucide-react';
+import { Button } from 'src/components/ui/button';
 
-const SidebarLayout = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+export const SidebarLayout: React.FC = () => {
   const { role } = useAuth();
+  const { state, openMobile, setOpenMobile, toggleSidebar, isMobile } = useSidebar();
+  const isCollapsed = state === 'collapsed';
   const menuItems = getSidebarItems(role);
 
-  return (
-    <Sidebar
-      variant="inset"
-      collapsible="icon"
-      {...props}
-      className="sidebar-box **:data-[slot=sidebar-inner]:bg-background **:data-[slot=sidebar-inner]:border **:data-[slot=sidebar-inner]:border-border group-data-[state=collapsed]:hover:shadow-xl"
-      side="left"
-    >
-      <SidebarHeader className="p-3 group-data-[state=collapsed]:px-2.5 flex flex-row items-center justify-between border-b border-border">
-        <FullLogo />
-        <Badge className="group-data-[state=collapsed]:hidden text-[10px] font-semibold" variant="secondary">
-          v1.0
-        </Badge>
-      </SidebarHeader>
-
-      <SidebarContent>
-        <SimpleBar style={{ height: '100%' }}>
-          <SidebarGroup className="flex items-center justify-center group-data-[state=collapsed]:px-2 px-3 py-4">
-            <div className="px-0 group-data-[state=collapsed]:px-0 w-full flex flex-col gap-4">
-              <NavCollapse menu={menuItems} className="text-sm" />
-            </div>
-          </SidebarGroup>
-        </SimpleBar>
-      </SidebarContent>
-
-      <SidebarFooter className="p-3 border-t border-border flex flex-col gap-2">
-        <div className="hide-menu flex flex-col gap-2">
-          <NavSecondary />
-          <NavUser />
+  const sidebarBody = (
+    <div className="flex flex-col h-full bg-card border-r border-border select-none">
+      {/* Brand & Toggle Header */}
+      <div
+        className={cn(
+          "h-14 border-b border-border flex items-center shrink-0 px-3 transition-all",
+          isCollapsed ? "justify-center" : "justify-between"
+        )}
+      >
+        <div className="flex items-center gap-2 overflow-hidden">
+          <FullLogo />
+          {!isCollapsed && (
+            <Badge className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0.5" variant="secondary">
+              v1.0
+            </Badge>
+          )}
         </div>
-      </SidebarFooter>
-    </Sidebar>
+        {!isCollapsed && !isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Collapse sidebar"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* Navigation Links Area */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1">
+        <NavCollapse menu={menuItems} />
+      </div>
+
+      {/* Footer Controls: Quick Persona Switcher + Profile */}
+      <div className="p-3 border-t border-border shrink-0 flex flex-col gap-2.5 bg-card">
+        {!isCollapsed && <NavSecondary />}
+        <NavUser />
+      </div>
+    </div>
+  );
+
+  // Mobile drawer view
+  if (isMobile) {
+    return (
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetContent side="left" className="p-0 w-72 bg-card border-r border-border [&>button]:hidden">
+          {sidebarBody}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop persistent sidebar view
+  return (
+    <aside
+      className={cn(
+        "h-screen sticky top-0 shrink-0 transition-all duration-200 ease-in-out z-20 hidden md:block",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      {sidebarBody}
+    </aside>
   );
 };
 

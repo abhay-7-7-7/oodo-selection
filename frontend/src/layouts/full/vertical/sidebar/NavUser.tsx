@@ -1,11 +1,14 @@
 // Brightloop User Profile in Sidebar Footer
 import { FC } from 'react';
 import { useAuth } from 'src/context/AuthContext';
+import { useSidebar } from 'src/components/ui/sidebar';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 export const NavUser: FC = () => {
   const { user, logout } = useAuth();
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,6 +24,18 @@ export const NavUser: FC = () => {
       .join('')
       .toUpperCase();
   };
+
+  if (isCollapsed) {
+    return (
+      <button
+        onClick={handleLogout}
+        title={`Sign out (${user?.email || 'admin'})`}
+        className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-muted-foreground hover:text-red-600 transition cursor-pointer"
+      >
+        <LogOut className="w-4 h-4" />
+      </button>
+    );
+  }
 
   return (
     <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 border border-border">

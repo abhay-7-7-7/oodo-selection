@@ -42,11 +42,15 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { toast } from 'sonner';
-import { Link } from 'react-router';
+import { Link, Navigate } from 'react-router';
 import { useAuth } from 'src/context/AuthContext';
 
 export const FinanceDashboard: React.FC = () => {
-  const { is10kEnabled } = useAuth();
+  const { is10kEnabled, role } = useAuth();
+
+  if (role === 'customer') {
+    return <Navigate to="/portal" replace />;
+  }
 
   const [summary, setSummary] = useState<FinanceSummaryReport | null>(null);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);

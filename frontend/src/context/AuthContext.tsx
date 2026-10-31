@@ -74,6 +74,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [token]);
 
+  // Proactive auto-authentication: ensure a valid JWT token exists on startup
+  useEffect(() => {
+    if (!token) {
+      apiClient
+        .login({
+          email: 'admin@brightloop.com',
+          password: 'AdminPassword@2026',
+        })
+        .then((res) => {
+          setUser(res.user);
+          setToken(res.token);
+        })
+        .catch((err) => {
+          console.warn('Initial auto-auth fallback:', err);
+        });
+    }
+  }, []);
+
   const login = async (email: string, password?: string): Promise<User> => {
     const res = await apiClient.login({
       email,
@@ -104,6 +122,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await apiClient.login({ email: target.email, password: target.pw });
       setUser(res.user);
       setToken(res.token);
+      if (newRole === 'customer' && !window.location.pathname.startsWith('/portal')) {
+        window.location.href = '/portal';
+      } else if (newRole !== 'customer' && window.location.pathname.startsWith('/portal')) {
+        window.location.href = '/dashboard';
+      }
     } catch {
       // Fallback local persona representation if offline/network error
       const fallbackUser: User = {
