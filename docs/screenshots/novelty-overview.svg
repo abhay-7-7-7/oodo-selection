@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="cardBg" x1="0" x2="1">
+      <stop offset="0%" stop-color="#1a2b4f"/>
+      <stop offset="100%" stop-color="#2d3d69"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0" x2="1">
+      <stop offset="0%" stop-color="#1f2e56"/>
+      <stop offset="100%" stop-color="#2d4e81"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="#edf2f7"/>
+  <rect x="0" y="0" width="260" height="1000" fill="#f3f7fb" stroke="#dfe7ef"/>
+  <rect x="0" y="0" width="260" height="90" fill="#ffffff"/>
+  <circle cx="40" cy="40" r="15" fill="#2e6ae5"/>
+  <text x="66" y="34" font-size="20" font-family="Arial" font-weight="700" fill="#1f2c3d">Brightloop</text>
+  <text x="66" y="58" font-size="12" font-family="Arial" fill="#6c7d8e">Subscription Cloud</text>
+  <text x="24" y="150" font-size="12" font-family="Arial" fill="#7a8ca3">CATALOG</text>
+  <rect x="18" y="170" width="210" height="36" rx="8" fill="#eaf1ff"/>
+  <text x="58" y="194" font-size="15" font-family="Arial" fill="#1b2a3b">Product Variants</text>
+  <rect x="18" y="220" width="210" height="36" rx="8" fill="#2f5cff"/>
+  <text x="58" y="244" font-size="15" font-family="Arial" fill="#ffffff">Subscription Plans</text>
+
+  <rect x="260" y="0" width="1340" height="1000" fill="#eff4f9"/>
+  <rect x="280" y="30" width="1260" height="80" rx="12" fill="#ffffff" stroke="#dfe7ef"/>
+  <circle cx="318" cy="66" r="18" fill="#dfeeff"/>
+  <text x="350" y="72" font-size="18" font-family="Arial" font-weight="700" fill="#1f2c3d">Brightloop Hackathon Architecture</text>
+
+  <rect x="280" y="125" width="1260" height="210" rx="24" fill="url(#hero)"/>
+  <text x="360" y="195" font-size="52" font-family="Arial" font-weight="700" fill="#edf4ff">Independent Novelty Feature Modules</text>
+  <text x="360" y="250" font-size="22" font-family="Arial" fill="#dfe5ff">All six competitive novelty features (N1–N6) built completely isolated from the main application codebase.</text>
+  <text x="360" y="292" font-size="22" font-family="Arial" fill="#dfe5ff">Merge-ready with independent FastAPI backends, SQLLite data isolation, and comprehensive test suites.</text>
+
+  <g>
+    <rect x="310" y="390" width="350" height="200" rx="18" fill="#ffffff" stroke="#dfe6ef"/>
+    <rect x="326" y="410" width="42" height="42" rx="10" fill="#eef3ff"/>
+    <text x="352" y="438" text-anchor="middle" font-size="26" font-family="Arial" fill="#2d5ae4">⚡</text>
+    <text x="382" y="438" font-size="17" font-family="Arial" font-weight="700" fill="#1d2940">N1</text>
+    <text x="330" y="500" font-size="26" font-family="Arial" font-weight="700" fill="#1b2738">Profit-Aware Discount Guardrail</text>
+    <text x="330" y="545" font-size="16" font-family="Arial" fill="#697b8d">Calculates real-time COGS profit margins</text>
+    <text x="330" y="570" font-size="16" font-family="Arial" fill="#697b8d">before discounts are saved.</text>
+    <rect x="330" y="595" width="310" height="42" rx="8" fill="#f3f7fb" stroke="#d9e2ec"/>
+    <text x="480" y="622" text-anchor="middle" font-size="15" font-family="Arial" fill="#2b3d55">Launch N1 Workspace →</text>
+  </g>
+
+  <g>
+    <rect x="700" y="390" width="350" height="200" rx="18" fill="#ffffff" stroke="#dfe6ef"/>
+    <rect x="716" y="410" width="42" height="42" rx="10" fill="#edf4ff"/>
+    <text x="742" y="438" text-anchor="middle" font-size="26" font-family="Arial" fill="#2d5ae4">🧾</text>
+    <text x="772" y="438" font-size="17" font-family="Arial" font-weight="700" fill="#1d2940">N2</text>
+    <text x="720" y="500" font-size="26" font-family="Arial" font-weight="700" fill="#1b2738">Billing Integrity Auditor</text>
+    <text x="720" y="545" font-size="16" font-family="Arial" fill="#697b8d">Proactive background reconciliation</text>
+    <text x="720" y="570" font-size="16" font-family="Arial" fill="#697b8d">scanner that uncovers duplicate invoices.</text>
+    <rect x="720" y="595" width="310" height="42" rx="8" fill="#f3f7fb" stroke="#d9e2ec"/>
+    <text x="875" y="622" text-anchor="middle" font-size="15" font-family="Arial" fill="#2b3d55">Launch N2 Workspace →</text>
+  </g>
+
+  <g>
+    <rect x="1090" y="390" width="350" height="200" rx="18" fill="#ffffff" stroke="#dfe6ef"/>
+    <rect x="1106" y="410" width="42" height="42" rx="10" fill="#edf4ff"/>
+    <text x="1132" y="438" text-anchor="middle" font-size="26" font-family="Arial" fill="#2d5ae4">💸</text>
+    <text x="1152" y="438" font-size="17" font-family="Arial" font-weight="700" fill="#1d2940">N3</text>
+    <text x="1110" y="500" font-size="26" font-family="Arial" font-weight="700" fill="#1b2738">Split-Payment Bank Matcher</text>
+    <text x="1110" y="545" font-size="16" font-family="Arial" fill="#697b8d">Resolves the NP-hard subset-sum problem</text>
+    <text x="1110" y="570" font-size="16" font-family="Arial" fill="#697b8d">to reconcile split deposits.</text>
+    <rect x="1110" y="595" width="310" height="42" rx="8" fill="#f3f7fb" stroke="#d9e2ec"/>
+    <text x="1265" y="622" text-anchor="middle" font-size="15" font-family="Arial" fill="#2b3d55">Launch N3 Workspace →</text>
+  </g>
+</svg>
+

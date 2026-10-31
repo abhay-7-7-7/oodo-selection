@@ -1,8 +1,8 @@
 # RecurOps: Subscription Billing Platform for Software Companies
 
-**RecurOps** replaces the spreadsheets, manual invoices and bank-statement matching that software companies use to run subscription revenue. One system covers the whole cycle: catalog, quotation, subscription, automatic invoice, payment and finance reporting.
+**RecurOps** replaces the spreadsheets, manual invoices and bank-statement matching that software companies use to run subscription revenue. One system covers the whole cycle: catalog, quotation, subscription management, billing, payments and reporting.
 
-**First customer: Brightloop Software.** Brightloop sells software on monthly and yearly plans with add-ons and product variants. They came to us with five problems, and this repository is the platform configured and delivered for them.
+**First customer: Brightloop Software.** Brightloop sells software on monthly and yearly plans with add-ons and product variants. They came to us with five problems, and this repository is the platform that solves them.
 
 | Brightloop's problem | What RecurOps does |
 |---|---|
@@ -22,7 +22,21 @@
 
 ## How it is delivered
 
-Today each customer gets their own deployment: their own database, their own branding and their own users. Brightloop is the first deployment and is pre-loaded with demo data (10,000 subscriptions). Multi-company hosting is on the roadmap below, not built yet.
+Today each customer gets their own deployment: their own database, their own branding and their own users. Brightloop is the first deployment and is pre-loaded with demo data (10,000 subscriptions). More customers can be added in the same architecture with a clean multi-tenant foundation.
+
+## Screenshots
+
+### Customer portal dashboard
+
+![Customer portal dashboard](docs/screenshots/customer-portal-dashboard.svg)
+
+### Finance dashboard
+
+![Finance dashboard](docs/screenshots/finance-dashboard.svg)
+
+### Novelty modules overview
+
+![Novelty modules overview](docs/screenshots/novelty-overview.svg)
 
 ## Run the Brightloop deployment
 
@@ -74,8 +88,8 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 | Reminder centre | Unpaid and upcoming invoices requiring manual chasing | `/reminder-centre` |
 
 ### 1. Discount guardrail (/discount-guardrail)
-**The pain:** Sales reps at Brightloop frequently offer discounts blindly to close deals without checking unit cost or margins. A 20% discount on a low-margin software add-on can easily turn a profitable subscription into a loss-making contract. Management only discovers the negative margin months later when reviewing accounting reports.
-**What we built:** We built an automated real-time margin simulator and multi-tier approval guardrail directly into discount authoring. It calculates true COGS profit margins before any discount is finalized, flagging margin breaches instantly. If a deal breaches the minimum threshold, it blocks the discount until an authorized manager or director approves an override with justification.
+**The pain:** Sales reps at Brightloop frequently offer discounts blindly to close deals without checking unit cost or margins. A 20% discount on a low-margin software add-on can easily turn a profitable deal into a loss.
+**What we built:** We built an automated real-time margin simulator and multi-tier approval guardrail directly into discount authoring. It calculates true COGS profit margins before any discount is finalized.
 **How it works:**
 - Evaluates selling price, unit cost (COGS), discount type (percentage or fixed paise), and quantity.
 - Computes net profit and post-discount margin against a configurable minimum margin floor (15.0%).
@@ -86,11 +100,11 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 2. Set Base Sales Price to ₹1,000, Unit Cost to ₹800, and Discount to 15% (profit ₹50, margin 5.88%), triggering a breached guardrail warning.
 3. Enter a business justification, click **Submit Override Request**, and observe the approved audit record appear in the live Audit Log.
 **Why it matters:** Protects subscription gross margins and eliminates loss-making contracts before quotations ever reach customers.
-**Proof:** `backend/tests/test_novelty_guardrail.py`, `backend/app/api/novelties/discount_guardrail.py`, `backend/app/services/guardrail_service.py`, `frontend/src/views/novelties/DiscountGuardrail.tsx`.
+**Proof:** `backend/tests/test_novelty_guardrail.py`, `backend/app/api/novelties/discount_guardrail.py`, `backend/app/services/guardrail_service.py`, `frontend/src/views/novelties/DiscountGuardrail.tsx`
 
 ### 2. Bill explainer (/bill-explainer)
-**The pain:** Customers often receive a recurring bill that differs from the previous month and contact support because invoices look confusing or wrong. Support agents spend hours comparing line items across two billing cycles to explain proration, tax shifts or quantity changes. This creates friction, slows down collections and frustrates customers.
-**What we built:** We built an automated diff engine that compares any two customer invoices and translates raw financial numbers into plain-English explanations. It identifies exactly which fields changed—subtotals, taxes or discounts—and states why the delta occurred. Both internal staff and portal customers can view the breakdown instantly.
+**The pain:** Customers often receive a recurring bill that differs from the previous month and contact support because invoices look confusing or wrong. Support agents spend hours comparing line items to explain changes.
+**What we built:** We built an automated diff engine that compares any two customer invoices and translates raw financial numbers into plain-English explanations. It identifies exactly which fields changed and why.
 **How it works:**
 - Fetches previous and current invoice records and item totals stored in integer paise.
 - Computes exact arithmetic deltas across subtotal, tax amount, and discount amount.
@@ -101,11 +115,11 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 2. Select Previous Invoice (`inv-001`) and Current Invoice (`inv-002`) and click **Compare Invoices**.
 3. Review the plain-English summary card showing the exact rupee delta and itemized explanations for subtotal and tax.
 **Why it matters:** Resolves customer billing confusion immediately and drastically reduces billing-related support inquiries.
-**Proof:** `backend/tests/test_novelty_bill_explainer.py`, `backend/app/api/novelties/bill_explainer.py`, `backend/app/services/bill_explainer_service.py`, `frontend/src/views/novelties/BillExplainer.tsx`.
+**Proof:** `backend/tests/test_novelty_bill_explainer.py`, `backend/app/api/novelties/bill_explainer.py`, `backend/app/services/bill_explainer_service.py`, `frontend/src/views/novelties/BillExplainer.tsx`
 
 ### 3. Integrity auditor (/integrity-auditor)
-**The pain:** In fast-growing subscription billing, silent database anomalies like double-billed cycles, unbilled active periods or orphaned payments can go undetected for weeks. Manual spot-checking across thousands of database rows is unreliable and time-consuming. Financial discrepancies often remain hidden until month-end reconciliation or customer complaints.
-**What we built:** We built an on-demand database integrity auditor that scans the live billing database for revenue leaks, duplicate invoices, and data mismatches. It flags critical issues with severity ratings and exact entity identifiers in seconds. Finance managers can inspect findings, verify database health and review past audit runs.
+**The pain:** In fast-growing subscription billing, silent database anomalies like double-billed cycles, unbilled active periods or orphaned payments can go undetected for weeks. Manual spot-checking is too slow and unreliable.
+**What we built:** We built an on-demand database integrity auditor that scans the live billing database for revenue leaks, duplicate invoices, and data mismatches. It flags critical issues with severity-level reporting.
 **How it works:**
 - Scans for duplicate invoices sharing the same subscription ID and overlapping billing periods (`critical` severity).
 - Verifies that recorded invoice payments strictly equal the sum of successful payment records (`high` severity).
@@ -119,8 +133,8 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 **Proof:** `backend/tests/test_novelty_auditor.py`, `backend/app/api/novelties/integrity_auditor.py`, `backend/app/services/auditor_service.py`, `frontend/src/views/novelties/IntegrityAuditor.tsx`.
 
 ### 4. Bank matcher (/bank-matcher)
-**The pain:** Brightloop's finance team currently reconciles payments by manually scrolling through bank statements to match incoming wire deposits to open invoices. When a client sends a single lump-sum transfer to settle two or three separate invoices, finding the right combination by hand is slow and prone to errors. Unmatched invoices remain marked as overdue, causing awkward collection calls to customers who already paid.
-**What we built:** We built an intelligent bank statement reconciliation tool powered by a subset-sum algorithm. It ingests standard bank CSV exports, extracts credit transactions, and automatically pairs deposits with single or combined open invoices. Finance teams can review proposed matches with confidence scores and confirm reconciliation in one click.
+**The pain:** Brightloop's finance team currently reconciles payments by manually scrolling through bank statements to match incoming wire deposits to open invoices. When a client sends a single lump-sum deposit that covers multiple invoices, the matching becomes tedious and error-prone.
+**What we built:** We built an intelligent bank statement reconciliation tool powered by a subset-sum algorithm. It ingests standard bank CSV exports, extracts credit transactions, and automatically proposes invoice matches.
 **How it works:**
 - Parses bank statement CSV rows, converting credits to paise and saving them into `bank_transactions`.
 - Queries open invoices with pending, partial, or overdue balances.
@@ -135,8 +149,8 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 **Proof:** `backend/tests/test_novelty_bank_matcher.py`, `backend/app/api/novelties/bank_matcher.py`, `backend/app/services/bank_matcher_service.py`, `frontend/src/views/novelties/BankMatcher.tsx`.
 
 ### 5. Renewal radar (/renewal-radar)
-**The pain:** Subscription renewal dates at Brightloop are tracked informally, causing contracts to lapse unnoticed when staff forget to follow up. By the time the team realizes an agreement has expired, the customer may have halted usage or moved to a competitor. Manually drafting renewal quotes for hundreds of accounts takes days of repetitive administrative effort.
-**What we built:** We built an early-warning renewal pipeline that groups expiring contracts into proactive operational horizons (7 days, 30 days, 60 days, and expired). It highlights customer names, current plans, days remaining, and outstanding balances. Account managers can generate pre-filled renewal quotation drafts in a single click directly from the dashboard.
+**The pain:** Subscription renewal dates at Brightloop are tracked informally, causing contracts to lapse unnoticed when staff forget to follow up. By the time the team realizes an agreement has expired, revenue is already at risk.
+**What we built:** We built an early-warning renewal pipeline that groups expiring contracts into proactive operational horizons (7 days, 30 days, 60 days, and expired). It highlights customer names, plan details and upcoming renewals in one place.
 **How it works:**
 - Queries all active and expiring subscriptions with defined end dates.
 - Computes exact days until expiration (`(end_date - today).days`) and partitions contracts into 7d, 30d, 60d, and expired buckets.
@@ -147,11 +161,11 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 2. Switch between the **7 Days**, **30 Days**, and **60 Days** tabs to inspect expiring subscriptions.
 3. Click **1-Click Renewal Quote** on any subscription to generate a draft quotation instantly.
 **Why it matters:** Maximizes net revenue retention by preventing accidental churn and accelerating customer renewals.
-**Proof:** `backend/tests/test_novelty_renewal_radar.py`, `backend/app/api/novelties/renewal_radar.py`, `backend/app/services/renewal_radar_service.py`, `frontend/src/views/novelties/RenewalRadar.tsx`.
+**Proof:** `backend/tests/test_novelty_renewal_radar.py`, `backend/app/api/novelties/renewal_radar.py`, `backend/app/services/renewal_radar_service.py`, `frontend/src/views/novelties/RenewalRadar.tsx`
 
 ### 6. Reminder centre (/reminder-centre)
-**The pain:** Brightloop's staff spend hours each week manually drafting reminder emails to chase overdue invoices and warn customers about impending renewals. Customers often miss payments simply because they never received a timely reminder before the invoice due date. Inconsistent manual chasing harms cash flow and annoys customers when reminders are sent erratically.
-**What we built:** We built an automated notification engine with configurable timing rules for upcoming dues, overdue chasing, and renewal notices. It scans the database on schedule or on demand, generates personalized reminder messages, and deduplicates dispatches to ensure no customer receives redundant emails. Administrators can inspect upcoming queues, run on-demand dispatches, and review full dispatch history.
+**The pain:** Brightloop's staff spend hours each week manually drafting reminder emails to chase overdue invoices and warn customers about impending renewals. Customers often miss payments simply because no reminder was sent on time.
+**What we built:** We built an automated notification engine with configurable timing rules for upcoming dues, overdue chasing, and renewal notices. It scans the database on schedule or on demand, generates reminders, and logs every dispatch.
 **How it works:**
 - Configures automated cadences: due-soon notices (e.g. 7, 3, 1 days before), overdue repeats (every 3 days), and expiry notices (30, 7 days).
 - Scans active unpaid invoices and expiring contracts with registered customer email addresses.
@@ -162,7 +176,7 @@ The frontend talks to `http://localhost:8000/api` by default (override with `VIT
 2. Adjust the due-soon days or overdue repeat cadence and click **Save Cadence Settings**.
 3. Click **Run Dispatch Now** to execute a live dispatch batch and inspect the dispatched count and history table.
 **Why it matters:** Accelerates cash collections and eliminates manual chasing while ensuring customers receive consistent, non-intrusive notifications.
-**Proof:** `backend/tests/test_novelty_reminder_centre.py`, `backend/app/api/novelties/reminder_centre.py`, `backend/app/services/reminder_centre_service.py`, `frontend/src/views/novelties/ReminderCentre.tsx`.
+**Proof:** `backend/tests/test_novelty_reminder_centre.py`, `backend/app/api/novelties/reminder_centre.py`, `backend/app/services/reminder_centre_service.py`, `frontend/src/views/novelties/ReminderCentre.tsx`
 
 ## Architecture
 
@@ -191,3 +205,4 @@ Two developers, using feature branches and pull requests, with commits from both
 - `backend/README.md`, `backend/API_DOCUMENTATION.md`: API reference
 - `docs/api-contract.md`: frontend and backend contract
 - `FRONTEND_MODULE_STATUS.md`: screens and the endpoints each uses
+
